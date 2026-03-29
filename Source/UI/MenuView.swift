@@ -216,19 +216,36 @@ struct MenuView: View {
                 Label("\(Int(wpm)) WPM", systemImage: "bolt.fill")
                     .font(.system(size: 9, weight: .bold, design: .monospaced))
                     .foregroundColor(wpm > 0 ? .orange : .secondary)
+                    .scaleEffect(audioPulseActive ? 1.1 : 1.0)
                 
                 Spacer()
                 
                 let isReallyActive = audioSynthesizer.hasPermission && !audioSynthesizer.isMuted
-                Circle()
-                    .fill(isReallyActive ? .green : .red)
-                    .frame(width: 6, height: 6)
-                Text(isReallyActive ? "Active" : "Silenced")
-                    .font(.system(size: 9, weight: .bold))
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(isReallyActive ? .green : .red)
+                        .frame(width: 6, height: 6)
+                        .scaleEffect(audioPulseActive ? 1.5 : 1.0) // Tuşa basınca parlar
+                    
+                    Text(isReallyActive ? "Active" : "Silenced")
+                        .font(.system(size: 9, weight: .bold))
+                }
             }
             .padding(12)
             .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
         }
+        .background(
+            ZStack {
+                // Dinamik Arkaplan Işığı (Mesh-like)
+                if audioPulseActive {
+                    Circle()
+                        .fill(Color.accentColor.opacity(0.05))
+                        .blur(radius: 40)
+                        .offset(x: CGFloat.random(in: -50...50), y: CGFloat.random(in: -50...50))
+                        .transition(.opacity)
+                }
+            }
+        )
         .frame(width: 250)
         .onReceive(pub) { _ in
             let newKey = RecentKey(char: "•") 
