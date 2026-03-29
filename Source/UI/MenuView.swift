@@ -30,7 +30,7 @@ struct MenuView: View {
                 
                 // İZİN UYARISI
                 if !audioSynthesizer.hasPermission {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 5) {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(.red)
@@ -39,10 +39,9 @@ struct MenuView: View {
                                 .foregroundColor(.primary)
                         }
                         
-                        Text("Please allow 'Signal' in Settings > Privacy > Accessibility to detect keystrokes.")
+                        Text("Please allow 'Signal' in Settings.")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
                         
                         HStack {
                             Button("Open Settings") {
@@ -50,18 +49,15 @@ struct MenuView: View {
                             }
                             .controlSize(.small)
                             
-                            Button("Check Again") {
+                            Button("Check") {
                                 audioSynthesizer.hasPermission = AXIsProcessTrusted()
                             }
                             .controlSize(.small)
                         }
-                        .padding(.top, 4)
                     }
-                    .padding(12)
+                    .padding(10)
                     .background(Color.red.opacity(0.08))
                     .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.red.opacity(0.2), lineWidth: 1))
-                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 
                 // Tema Seçici
@@ -97,7 +93,6 @@ struct MenuView: View {
                     }
                     .pickerStyle(MenuPickerStyle()) 
                     .labelsHidden()
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.05)))
                 }
                 
                 // Volume
@@ -106,18 +101,18 @@ struct MenuView: View {
                         Text("Volume")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.secondary)
-                            .textCase(.uppercase)
                         Spacer()
                         Text("\(Int(audioSynthesizer.volume * 100))%")
                             .font(.system(size: 10, design: .monospaced))
-                            .foregroundColor(.secondary)
                     }
                     
                     Slider(value: $audioSynthesizer.volume, in: 0...1)
-                        .accentColor(audioSynthesizer.hasPermission ? .accentColor : .gray)
                 }
             }
             .padding(16)
+            
+            // PENCERE BU HARİKADAN SONRA ÇAPASINI KAYBETMEZ
+            Spacer(minLength: 0)
             
             Divider()
             
@@ -125,7 +120,6 @@ struct MenuView: View {
             HStack {
                 Label("\(keysPressed)", systemImage: "keyboard")
                     .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(.secondary)
                 
                 Spacer()
                 
@@ -145,8 +139,7 @@ struct MenuView: View {
             .padding(12)
             .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
         }
-        .frame(width: 260)
-        .animation(.spring(), value: audioSynthesizer.hasPermission)
+        .frame(width: 260, height: 380) // Sabit yükseklik, kesin konum!
         .onReceive(pub) { _ in
             keysPressed += 1
             let now = Date()
