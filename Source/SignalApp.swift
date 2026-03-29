@@ -30,7 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.animates = true
-        popover.contentViewController = NSHostingController(rootView: contentView)
+        let hostingController = NSHostingController(rootView: contentView)
+        popover.contentViewController = hostingController
         
         // Siberpunk temasına uyumlu olması için tamamen saydam ve dark denemesi
         popover.appearance = NSAppearance(named: .vibrantDark)

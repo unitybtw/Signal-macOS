@@ -15,6 +15,9 @@ enum AudioTheme {
     case bubblePop
     case percussiveDjembe
     case alienBlaster
+    case percussive808
+    case laserGun
+    case catMeow
 }
 
 class AudioSynthesizer: ObservableObject {
@@ -44,10 +47,40 @@ class AudioSynthesizer: ObservableObject {
     private var bubblePopBuffer: AVAudioPCMBuffer?
     private var percussiveDjembeBuffer: AVAudioPCMBuffer?
     private var alienBlasterBuffer: AVAudioPCMBuffer?
+    private var percussive808Buffer: AVAudioPCMBuffer?
+    private var laserGunBuffer: AVAudioPCMBuffer?
+    private var catMeowBuffer: AVAudioPCMBuffer?
     
     init() {
         setupEngine()
         generateSynthBuffers()
+        
+        // --- Uygulama Açılış Sesi ---
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.playStartupSound()
+        }
+    }
+    
+    private func playStartupSound() {
+        guard let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false) else { return }
+        
+        // 0.4 saniyelik bir siber-açılış bip sesi
+        let duration: Double = 0.4
+        let frameCount = AVAudioFrameCount(format.sampleRate * duration)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return }
+        buffer.frameLength = frameCount
+        guard let channelData = buffer.floatChannelData?[0] else { return }
+        
+        for i in 0..<Int(frameCount) {
+            let t = Double(i) / format.sampleRate
+            let env = Float(exp(-t * 20.0))
+            // frekans yükselen bir (pew) sese doğru gitse havalı olur
+            let freq = 440.0 + 800.0 * (t / duration)
+            channelData[i] = Float(sin(2.0 * .pi * freq * t)) * env * 0.4
+        }
+        
+        playerNode.scheduleBuffer(buffer, at: nil, options: .interrupts)
+        if !playerNode.isPlaying { playerNode.play() }
     }
     
     private func setupEngine() {
@@ -75,6 +108,9 @@ class AudioSynthesizer: ObservableObject {
     
     func setTheme(_ theme: AudioTheme) {
         currentTheme = theme
+        // --- Tema Önizleme Sesi ---
+        // Picker değiştiğinde kullanıcıya yeni sesin bir örneğini çal
+        playKeySound()
     }
     
     func playKeySound() {
@@ -94,6 +130,9 @@ class AudioSynthesizer: ObservableObject {
         case .bubblePop: bufferToPlay = bubblePopBuffer
         case .percussiveDjembe: bufferToPlay = percussiveDjembeBuffer
         case .alienBlaster: bufferToPlay = alienBlasterBuffer
+        case .percussive808: bufferToPlay = percussive808Buffer
+        case .laserGun: bufferToPlay = laserGunBuffer
+        case .catMeow: bufferToPlay = catMeowBuffer
         }
         
         guard let pcmBuffer = bufferToPlay else { return }
@@ -122,6 +161,9 @@ class AudioSynthesizer: ObservableObject {
         self.bubblePopBuffer = createClickBuffer(format: format, type: .bubblePop)
         self.percussiveDjembeBuffer = createClickBuffer(format: format, type: .percussiveDjembe)
         self.alienBlasterBuffer = createClickBuffer(format: format, type: .alienBlaster)
+        self.percussive808Buffer = createClickBuffer(format: format, type: .percussive808)
+        self.laserGunBuffer = createClickBuffer(format: format, type: .laserGun)
+        self.catMeowBuffer = createClickBuffer(format: format, type: .catMeow)
     }
     
     private func loadAudioFile(name: String, format: AVAudioFormat) -> AVAudioPCMBuffer? {
@@ -143,7 +185,7 @@ class AudioSynthesizer: ObservableObject {
         }
     }
     
-    enum SynthType { case mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster }
+    enum SynthType { case mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow }
     
     private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
         let sampleRate = format.sampleRate
@@ -161,6 +203,9 @@ class AudioSynthesizer: ObservableObject {
         case .bubblePop: duration = 0.05
         case .percussiveDjembe: duration = 0.08
         case .alienBlaster: duration = 0.10
+        case .percussive808: duration = 0.20
+        case .laserGun: duration = 0.15
+        case .catMeow: duration = 0.25
         }
         
         let frameCount = AVAudioFrameCount(sampleRate * duration)
@@ -276,6 +321,27 @@ class AudioSynthesizer: ObservableObject {
                 var osc = sin(2.0 * .pi * currentFreq * t)
                 osc = osc > 0 ? 1.0 : -1.0 // sert distorsiyon
                 sample = (Float(osc) * 0.6 + noise * 0.4) * env * 1.5
+                
+            case .percussive808:
+                // Derin bir bas vuruşu (Sub-bass)
+                let env = Float(exp(-t * 12.0))
+                let freq = 60.0 * exp(-t * 5.0) // Frekans yavaşça düşer (Pitch drop)
+                let osc = sin(2.0 * .pi * Double(freq) * t)
+                sample = Float(osc) * env * 2.0
+                
+            case .laserGun:
+                // Retro bilim kurgu silahı
+                let env = Float(exp(-t * 15.0))
+                let freq = 2000.0 - (1800.0 * (t / duration))
+                let osc = sin(2.0 * .pi * freq * t)
+                sample = Float(osc) * env * 1.5
+                
+            case .catMeow:
+                // Kedicik (Matematiksel kedi sesi denemesi)
+                let env = Float(sin(.pi * (t / duration))) // yükselip alçalan zarf
+                let baseFreq = 400.0 + 200.0 * sin(2.0 * .pi * 5.0 * t) // vibrato
+                let osc = sin(2.0 * .pi * baseFreq * t)
+                sample = Float(osc) * env * 0.8
             }
             
             // Satürasyon

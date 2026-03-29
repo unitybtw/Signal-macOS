@@ -20,7 +20,6 @@ struct MenuView: View {
                     .font(.headline)
                 
                 Spacer()
-                // Quit button removed per user request
             }
             .padding()
             .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
@@ -48,20 +47,22 @@ struct MenuView: View {
                             }
                         }
                         .controlSize(.small)
-                        .padding(.top, 4)
                         
                         Button("Check Permission") {
-                            let newStatus = AXIsProcessTrusted()
-                            if newStatus && !hasPermission {
-                                NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
+                            withAnimation {
+                                let newStatus = AXIsProcessTrusted()
+                                if newStatus && !hasPermission {
+                                    NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
+                                }
+                                hasPermission = newStatus
                             }
-                            hasPermission = newStatus
                         }
                         .controlSize(.small)
                     }
                     .padding()
                     .background(Color.red.opacity(0.1))
                     .cornerRadius(8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 
                 // Tema Seçici
@@ -75,20 +76,26 @@ struct MenuView: View {
                         get: { audioSynthesizer.currentTheme },
                         set: { newTheme in audioSynthesizer.setTheme(newTheme) }
                     )) {
-                        Text("Mech (Linear)").tag(AudioTheme.mechanical)
-                        Text("Mech (Clicky)").tag(AudioTheme.mechanicalClicky)
-                        Text("Typewriter").tag(AudioTheme.typewriter)
-                        Text("Sci-Fi").tag(AudioTheme.scifi)
-                        Text("Arcade").tag(AudioTheme.arcade)
-                        Text("Plop (Water)").tag(AudioTheme.waterDrop)
-                        Text("Glockenspiel").tag(AudioTheme.glockenspiel)
-                        Text("Wooden Block").tag(AudioTheme.woodenBlock)
-                        Text("Vinyl Scratch").tag(AudioTheme.vinylScratch)
-                        Text("Bubble Pop").tag(AudioTheme.bubblePop)
-                        Text("Percussive Djembe").tag(AudioTheme.percussiveDjembe)
-                        Text("Alien Blaster").tag(AudioTheme.alienBlaster)
+                        Group {
+                            Text("Mech (Linear)").tag(AudioTheme.mechanical)
+                            Text("Mech (Clicky)").tag(AudioTheme.mechanicalClicky)
+                            Text("Typewriter").tag(AudioTheme.typewriter)
+                            Text("Sci-Fi").tag(AudioTheme.scifi)
+                            Text("Arcade").tag(AudioTheme.arcade)
+                            Text("Plop (Water)").tag(AudioTheme.waterDrop)
+                            Text("Glockenspiel").tag(AudioTheme.glockenspiel)
+                            Text("Wooden Block").tag(AudioTheme.woodenBlock)
+                            Text("Vinyl Scratch").tag(AudioTheme.vinylScratch)
+                            Text("Bubble Pop").tag(AudioTheme.bubblePop)
+                        }
+                        Group {
+                            Text("Percussive Djembe").tag(AudioTheme.percussiveDjembe)
+                            Text("Alien Blaster").tag(AudioTheme.alienBlaster)
+                            Text("Sub 808").tag(AudioTheme.percussive808)
+                            Text("Laser Gun").tag(AudioTheme.laserGun)
+                            Text("Cat Meow").tag(AudioTheme.catMeow)
+                        }
                     }
-                    // Dropdown for 6 options looks better than segments
                     .pickerStyle(MenuPickerStyle()) 
                     .labelsHidden()
                 }
@@ -116,15 +123,12 @@ struct MenuView: View {
             
             // Alt Bilgi Çubuğu
             HStack {
-                // Toplam vuruşlar
                 Label("\(keysPressed)", systemImage: "keyboard")
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundColor(.secondary)
-                    .help("Total strikes")
                 
                 Spacer()
                 
-                // Canlı WPM (Words Per Minute) Hesaplaması
                 let wpm = (Double(recentKeystrokes.count) * 12.0) / 5.0
                 Label("\(Int(wpm)) WPM", systemImage: "bolt.fill")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
@@ -140,17 +144,15 @@ struct MenuView: View {
             .padding(12)
             .background(Color(NSColor.controlBackgroundColor))
         }
-        .frame(width: 260) // Yükseklik tamamen içerik kadar (Dinamik) olacak! Boşluk kalmayacak.
+        .frame(width: 260)
+        .animation(.spring(), value: hasPermission)
         .onReceive(pub) { _ in
             keysPressed += 1
             let now = Date()
             recentKeystrokes.append(now)
-            
-            // 5 saniyeden eski vuruşları sil (Anlık hız ölçümü için)
             recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
         }
         .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
-            // Zaman geçtiğinde WPM'in sıfırlanması için listeyi güncelle
             let now = Date()
             recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
         }
