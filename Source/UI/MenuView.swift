@@ -30,6 +30,10 @@ struct MenuView: View {
                 
                 Text("Signal")
                     .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.primary)
+                    .shadow(color: .accentColor.opacity(audioPulseActive ? 0.4 : 0), radius: 6)
+                    .scaleEffect(audioPulseActive ? 1.05 : 1.0)
+                    .animation(.spring(response: 0.2, dampingFraction: 0.5), value: audioPulseActive)
                 
                 Spacer()
                 
@@ -215,8 +219,9 @@ struct MenuView: View {
                 let wpm = (wpmCount * 12.0) / 5.0
                 Label("\(Int(wpm)) WPM", systemImage: "bolt.fill")
                     .font(.system(size: 9, weight: .bold, design: .monospaced))
-                    .foregroundColor(wpm > 0 ? .orange : .secondary)
+                    .foregroundColor(wpm >= 100 ? .red : (wpm >= 60 ? .orange : .secondary))
                     .scaleEffect(audioPulseActive ? 1.1 : 1.0)
+                    .shadow(color: wpm >= 60 ? (wpm >= 100 ? .red : .orange).opacity(0.3) : .clear, radius: 4)
                 
                 Spacer()
                 
