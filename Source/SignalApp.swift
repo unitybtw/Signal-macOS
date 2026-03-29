@@ -30,9 +30,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
         let popover = NSPopover()
         popover.behavior = .transient
-        popover.animates = true
+        popover.animates = false // Animasyon bazen başlangıç konumunu saptırabilir
         popover.delegate = self
         let hostingController = NSHostingController(rootView: contentView)
+        hostingController.preferredContentSize = NSSize(width: 260, height: 380)
         popover.contentViewController = hostingController
         
         // Siberpunk temasına uyumlu olması için tamamen saydam ve dark denemesi
@@ -111,10 +112,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     func showPopover(_ sender: NSStatusBarButton) {
         NSApp.activate(ignoringOtherApps: true)
-        // .minY refers to the bottom edge of the button in coordinate space
+        // .minY refers to the bottom edge of the button
         popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-        // Bu komut odağı ele alır ki dışarı tıklayınca kapansın
-        popover.contentViewController?.view.window?.makeKey()
     }
 
     func closePopover(_ sender: Any?) {
