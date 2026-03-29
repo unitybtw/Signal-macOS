@@ -13,6 +13,7 @@ struct MenuView: View {
     @State private var keysPressed: Int = 0
     @State private var recentKeystrokes: [Date] = []
     @State private var keyHistory: [RecentKey] = []
+    @State private var audioPulseActive: Bool = false
     
     let pub = NotificationCenter.default.publisher(for: NSNotification.Name("KeyPressNotification"))
 
@@ -146,20 +147,45 @@ struct MenuView: View {
                     }
                 }
                 
-                // Volume
-                VStack(alignment: .leading, spacing: 6) {
+                // Dynamic Audio Pulse Waveform
+                VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Text("Volume")
                             .font(.system(size: 9, weight: .bold))
                             .foregroundColor(.secondary)
                             .textCase(.uppercase)
+                        
                         Spacer()
-                        Text("\(Int(audioSynthesizer.volume * 100))%")
-                            .font(.system(size: 10, design: .monospaced))
+                        
+                        // Audio Pulse Bars
+                        HStack(spacing: 2) {
+                            ForEach(0..<5) { index in
+                                RoundedRectangle(cornerRadius: 1)
+                                    .fill(audioSynthesizer.isMuted ? Color.gray : Color.blue)
+                                    .frame(width: 2, height: audioPulseActive ? CGFloat.random(in: 4...16) : 2)
+                                    .animation(.spring(response: 0.2, dampingFraction: 0.5), value: audioPulseActive)
+                            }
+                        }
                     }
                     
-                    Slider(value: $audioSynthesizer.volume, in: 0...1)
+                    HStack(spacing: 12) {
+                        Image(systemName: audioSynthesizer.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                            .foregroundColor(.secondary)
+                            .frame(width: 20)
+                            .onTapGesture {
+                                withAnimation { audioSynthesizer.isMuted.toggle() }
+                            }
+                        
+                        Slider(value: $audioSynthesizer.volume, in: 0...1)
+                            .accentColor(.blue)
+                        
+                        Text("\(Int(audioSynthesizer.volume * 100))%")
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundColor(.secondary)
+                            .frame(width: 35)
+                    }
                 }
+                .padding(.bottom, 6)
             }
             .padding(16)
             
@@ -196,6 +222,12 @@ struct MenuView: View {
             withAnimation(.spring()) {
                 keyHistory.append(newKey)
                 if keyHistory.count > 5 { keyHistory.removeFirst() }
+            }
+            
+            // Pulse Effect
+            audioPulseActive = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                audioPulseActive = false
             }
             
             keysPressed += 1
