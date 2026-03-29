@@ -28,6 +28,11 @@ enum AudioTheme: CaseIterable {
     case thunderZap
     case forestWind
     case deepThud
+    case heavyMetal
+    case neonBeep
+    case natureWood
+    case subBass
+    case airRush
     
     var displayName: String {
         switch self {
@@ -56,6 +61,11 @@ enum AudioTheme: CaseIterable {
         case .thunderZap: return "Zap"
         case .forestWind: return "Wind"
         case .deepThud: return "Deep"
+        case .heavyMetal: return "Metal"
+        case .neonBeep: return "Neon"
+        case .natureWood: return "Forest"
+        case .subBass: return "Sub"
+        case .airRush: return "Rush"
         }
     }
 }
@@ -100,6 +110,11 @@ class AudioSynthesizer: ObservableObject {
     private var thunderZapBuffer: AVAudioPCMBuffer?
     private var forestWindBuffer: AVAudioPCMBuffer?
     private var deepThudBuffer: AVAudioPCMBuffer?
+    private var heavyMetalBuffer: AVAudioPCMBuffer?
+    private var neonBeepBuffer: AVAudioPCMBuffer?
+    private var natureWoodBuffer: AVAudioPCMBuffer?
+    private var subBassBuffer: AVAudioPCMBuffer?
+    private var airRushBuffer: AVAudioPCMBuffer?
     
     init() {
         setupEngine()
@@ -204,6 +219,11 @@ class AudioSynthesizer: ObservableObject {
         case .thunderZap: bufferToPlay = thunderZapBuffer
         case .forestWind: bufferToPlay = forestWindBuffer
         case .deepThud: bufferToPlay = deepThudBuffer
+        case .heavyMetal: bufferToPlay = heavyMetalBuffer
+        case .neonBeep: bufferToPlay = neonBeepBuffer
+        case .natureWood: bufferToPlay = natureWoodBuffer
+        case .subBass: bufferToPlay = subBassBuffer
+        case .airRush: bufferToPlay = airRushBuffer
         }
         
         guard let pcmBuffer = bufferToPlay else { return }
@@ -245,6 +265,11 @@ class AudioSynthesizer: ObservableObject {
         self.thunderZapBuffer = createClickBuffer(format: format, type: .thunderZap)
         self.forestWindBuffer = createClickBuffer(format: format, type: .forestWind)
         self.deepThudBuffer = createClickBuffer(format: format, type: .deepThud)
+        self.heavyMetalBuffer = createClickBuffer(format: format, type: .heavyMetal)
+        self.neonBeepBuffer = createClickBuffer(format: format, type: .neonBeep)
+        self.natureWoodBuffer = createClickBuffer(format: format, type: .natureWood)
+        self.subBassBuffer = createClickBuffer(format: format, type: .subBass)
+        self.airRushBuffer = createClickBuffer(format: format, type: .airRush)
     }
     
     private func loadAudioFile(name: String, format: AVAudioFormat) -> AVAudioPCMBuffer? {
@@ -266,7 +291,7 @@ class AudioSynthesizer: ObservableObject {
         }
     }
     
-    enum SynthType { case mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud }
+    enum SynthType { case mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
     
     private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
         let sampleRate = format.sampleRate
@@ -297,6 +322,11 @@ class AudioSynthesizer: ObservableObject {
         case .thunderZap: duration = 0.08
         case .forestWind: duration = 0.20
         case .deepThud: duration = 0.12
+        case .heavyMetal: duration = 0.15
+        case .neonBeep: duration = 0.04
+        case .natureWood: duration = 0.10
+        case .subBass: duration = 0.25
+        case .airRush: duration = 0.08
         }
         
         let frameCount = AVAudioFrameCount(sampleRate * duration)
@@ -489,6 +519,33 @@ class AudioSynthesizer: ObservableObject {
                 let env = Float(exp(-t * 10.0))
                 let body = sin(2.0 * .pi * 45.0 * t)
                 sample = Float(body) * env * 2.5
+                
+            case .heavyMetal:
+                let noise = Float.random(in: -1.0...1.0)
+                let env = Float(exp(-t * 25.0))
+                let body = sin(2.0 * .pi * 200.0 * t)
+                sample = (Float(body) * 0.4 + noise * 0.6) * env * 1.8
+                
+            case .neonBeep:
+                let env = Float(exp(-t * 150.0))
+                let f1 = sin(2.0 * .pi * 3200.0 * t)
+                sample = Float(f1) * env * 0.6
+                
+            case .natureWood:
+                let noise = Float.random(in: -1.0...1.0) * 0.2
+                let env = Float(exp(-t * 100.0))
+                let body = sin(2.0 * .pi * 350.0 * t)
+                sample = (Float(body) + noise) * env * 1.4
+                
+            case .subBass:
+                let env = Float(exp(-t * 6.0))
+                let low = sin(2.0 * .pi * 35.0 * t)
+                sample = Float(low) * env * 2.2
+                
+            case .airRush:
+                let noise = Float.random(in: -1.0...1.0)
+                let env = Float(exp(-t * 40.0))
+                sample = noise * env * 0.9
             }
             
             // Satürasyon
