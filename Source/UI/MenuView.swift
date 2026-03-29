@@ -109,7 +109,7 @@ struct MenuView: View {
                     .transition(.opacity)
                 }
                 
-                // ANTIGRAVITY SEÇİMİ: PREMİUM PURE GLASS SEÇİCİ
+                // ANTIGRAVITY SEÇİMİ: PREMİUM PURE GLASS SEÇİCİ (ENHANCED)
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Audio Profile")
                         .font(.system(size: 9, weight: .bold))
@@ -131,19 +131,19 @@ struct MenuView: View {
                                         Text(theme.displayName)
                                             .font(.system(size: 11, weight: isSelected ? .bold : .medium))
                                             .foregroundColor(isSelected ? .white : .primary.opacity(0.8))
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 8)
+                                            .padding(.horizontal, 20) // Daha geniş
+                                            .padding(.vertical, 10) // Daha ferah
                                             .background(
                                                 ZStack {
                                                     if isSelected {
                                                         Capsule()
                                                             .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
                                                             .matchedGeometryEffect(id: "pureGlassSelection", in: selectionNamespace)
-                                                            .shadow(color: .blue.opacity(0.4), radius: 8, y: 2)
+                                                            .shadow(color: .blue.opacity(0.4), radius: 10, y: 3)
                                                             .overlay(Capsule().stroke(.white.opacity(0.2), lineWidth: 1))
                                                     } else {
                                                         Capsule()
-                                                            .fill(Color.primary.opacity(0.04))
+                                                            .fill(Color.primary.opacity(0.05))
                                                     }
                                                 }
                                             )
