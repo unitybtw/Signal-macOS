@@ -156,7 +156,6 @@ struct MenuView: View {
                         }
                     }
                 }
-                }
                 
                 // Dynamic Audio Pulse Waveform
                 VStack(alignment: .leading, spacing: 10) {
