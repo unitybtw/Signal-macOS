@@ -30,20 +30,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
         let popover = NSPopover()
         popover.behavior = .transient
-        popover.animates = false // Animasyon bazen başlangıç konumunu saptırabilir
+        popover.animates = true
         popover.delegate = self
         let hostingController = NSHostingController(rootView: contentView)
-        hostingController.preferredContentSize = NSSize(width: 260, height: 380)
         popover.contentViewController = hostingController
         
         // Siberpunk temasına uyumlu olması için tamamen saydam ve dark denemesi
         popover.appearance = NSAppearance(named: .vibrantDark)
         self.popover = popover
 
-        // Menü çubuğu ikonu
-        self.statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        // Menü çubuğu ikonu - SABİT GENİŞLİK (Konum hatasını önler)
+        self.statusBarItem = NSStatusBar.system.statusItem(withLength: 28)
         
         if let button = self.statusBarItem.button {
+            button.imagePosition = .imageOnly // Sadece ikon, metin yok (Hizalamayı korur)
             if let image = NSImage(systemSymbolName: "waveform.path.ecg", accessibilityDescription: "Signal") {
                 image.isTemplate = true
                 button.image = image
@@ -62,7 +62,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         keyEventMonitor.onKeyDown = { [weak self] event in
             DispatchQueue.main.async {
                 self?.audioSynthesizer.playKeySound()
-                NotificationCenter.default.post(name: NSNotification.Name("KeyPressNotification"), object: nil)
+                NotificationCenter.default.post(name: NSNotification.Name("KeyPressNotification"), object: event)
             }
         }
         
