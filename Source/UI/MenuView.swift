@@ -99,39 +99,60 @@ struct MenuView: View {
                     }
                 }
                 
-                // Tema Seçici
-                VStack(alignment: .leading, spacing: 6) {
+                // TEMA SEÇİCİ (LIQUID GLASS STYLE)
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Audio Profile")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundColor(.secondary)
                         .textCase(.uppercase)
                     
-                    Picker("", selection: Binding(
-                        get: { audioSynthesizer.currentTheme },
-                        set: { newTheme in audioSynthesizer.setTheme(newTheme) }
-                    )) {
-                        Group {
-                            Text("Mech (Linear)").tag(AudioTheme.mechanical)
-                            Text("Mech (Clicky)").tag(AudioTheme.mechanicalClicky)
-                            Text("Typewriter").tag(AudioTheme.typewriter)
-                            Text("Sci-Fi").tag(AudioTheme.scifi)
-                            Text("Arcade").tag(AudioTheme.arcade)
-                            Text("Plop (Water)").tag(AudioTheme.waterDrop)
-                            Text("Glockenspiel").tag(AudioTheme.glockenspiel)
-                            Text("Wooden Block").tag(AudioTheme.woodenBlock)
-                            Text("Vinyl Scratch").tag(AudioTheme.vinylScratch)
-                            Text("Bubble Pop").tag(AudioTheme.bubblePop)
+                    ScrollViewReader { proxy in
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(AudioTheme.allCases, id: \.self) { theme in
+                                    let isSelected = audioSynthesizer.currentTheme == theme
+                                    
+                                    Button(action: {
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                            audioSynthesizer.setTheme(theme)
+                                        }
+                                    }) {
+                                        Text(theme.displayName)
+                                            .font(.system(size: 11, weight: isSelected ? .bold : .medium))
+                                            .foregroundColor(isSelected ? .white : .secondary)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                ZStack {
+                                                    // Liquid Glass Efekti
+                                                    if isSelected {
+                                                        RoundedRectangle(cornerRadius: 8)
+                                                            .fill(LinearGradient(colors: [Color.blue.opacity(0.4), Color.purple.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                            .blur(radius: 2)
+                                                        
+                                                        RoundedRectangle(cornerRadius: 8)
+                                                            .stroke(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1.5)
+                                                            .shadow(color: .blue.opacity(0.5), radius: 4)
+                                                    } else {
+                                                        RoundedRectangle(cornerRadius: 8)
+                                                            .fill(Color.white.opacity(0.05))
+                                                    }
+                                                }
+                                            )
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .id(theme)
+                                }
+                            }
+                            .padding(.horizontal, 2)
+                            .padding(.vertical, 4)
                         }
-                        Group {
-                            Text("Percussive Djembe").tag(AudioTheme.percussiveDjembe)
-                            Text("Alien Blaster").tag(AudioTheme.alienBlaster)
-                            Text("Sub 808").tag(AudioTheme.percussive808)
-                            Text("Laser Gun").tag(AudioTheme.laserGun)
-                            Text("Cat Meow").tag(AudioTheme.catMeow)
+                        .onChange(of: audioSynthesizer.currentTheme) { newTheme in
+                            withAnimation {
+                                proxy.scrollTo(newTheme, anchor: .center)
+                            }
                         }
                     }
-                    .pickerStyle(MenuPickerStyle()) 
-                    .labelsHidden()
                 }
                 
                 // Volume

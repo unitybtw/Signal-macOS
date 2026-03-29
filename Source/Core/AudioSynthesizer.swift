@@ -2,7 +2,7 @@ import AVFoundation
 import CoreAudio
 import Combine
 
-enum AudioTheme {
+enum AudioTheme: CaseIterable {
     case mechanical
     case mechanicalClicky
     case typewriter
@@ -18,6 +18,26 @@ enum AudioTheme {
     case percussive808
     case laserGun
     case catMeow
+    
+    var displayName: String {
+        switch self {
+        case .mechanical: return "Mech (Linear)"
+        case .mechanicalClicky: return "Mech (Clicky)"
+        case .typewriter: return "Typewriter"
+        case .scifi: return "Sci-Fi"
+        case .arcade: return "Arcade"
+        case .waterDrop: return "Water"
+        case .glockenspiel: return "Glock"
+        case .woodenBlock: return "Wood"
+        case .vinylScratch: return "Vinyl"
+        case .bubblePop: return "Bubble"
+        case .percussiveDjembe: return "Djembe"
+        case .alienBlaster: return "Alien"
+        case .percussive808: return "808"
+        case .laserGun: return "Laser"
+        case .catMeow: return "Meow 🐱"
+        }
+    }
 }
 
 class AudioSynthesizer: ObservableObject {
