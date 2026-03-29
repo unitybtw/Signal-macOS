@@ -118,54 +118,68 @@ struct MenuView: View {
                     
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 4) {
-                                ForEach(AudioTheme.allCases, id: \.self) { theme in
-                                    let isSelected = audioSynthesizer.currentTheme == theme
-                                    
-                                    Button(action: {
-                                        withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.8, blendDuration: 0.3)) {
-                                            audioSynthesizer.setTheme(theme)
-                                            proxy.scrollTo(theme, anchor: .center)
-                                        }
-                                    }) {
-                                        Text(theme.displayName)
-                                            .font(.system(size: 11, weight: isSelected ? .bold : .medium))
-                                            .foregroundColor(isSelected ? .white : .primary.opacity(0.8))
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 8)
-                                            .background(
-                                                ZStack {
-                                                    if isSelected {
-                                                        Capsule()
-                                                            .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                                            .matchedGeometryEffect(id: "appleSelection", in: selectionNamespace)
-                                                            .shadow(color: .blue.opacity(0.35), radius: 6)
-                                                            .overlay(Capsule().stroke(.white.opacity(0.15), lineWidth: 1))
+                            ZStack(alignment: .leading) {
+                                // Arkaplan Kanalı
+                                Capsule()
+                                    .fill(Color.primary.opacity(0.06))
+                                    .frame(height: 36)
+                                
+                                // SEÇİM BALONCUĞU (TUTULUP KAYDIRILAN ASIL YAPI)
+                                let themes = AudioTheme.allCases
+                                let segmentWidth: CGFloat = 100 // Her segment için sabit genişlik
+                                
+                                if let currentIndex = themes.firstIndex(of: audioSynthesizer.currentTheme) {
+                                    Capsule()
+                                        .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        .frame(width: segmentWidth - 8, height: 28)
+                                        .offset(x: isDragging ? dragOffset : CGFloat(currentIndex) * segmentWidth + 4)
+                                        .shadow(color: .blue.opacity(0.4), radius: 8, y: 2)
+                                        .overlay(Capsule().stroke(.white.opacity(0.2), lineWidth: 1))
+                                        .gesture(
+                                            DragGesture()
+                                                .onChanged { value in
+                                                    if !isDragging {
+                                                        isDragging = true
+                                                        dragOffset = CGFloat(currentIndex) * segmentWidth + 4
+                                                    }
+                                                    withAnimation(.interactiveSpring()) {
+                                                        dragOffset = (CGFloat(currentIndex) * segmentWidth + 4) + value.translation.width
                                                     }
                                                 }
-                                            )
+                                                .onEnded { value in
+                                                    // Hangi segmente en yakın olduğunu bul ve oraya mıknatısla
+                                                    let finalX = dragOffset + value.predictedEndTranslation.width / 2
+                                                    let nearestIndex = Int(round(max(0, finalX) / segmentWidth))
+                                                    let safeIndex = min(themes.count - 1, nearestIndex)
+                                                    
+                                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                                        audioSynthesizer.setTheme(themes[safeIndex])
+                                                        isDragging = false
+                                                        proxy.scrollTo(themes[safeIndex], anchor: .center)
+                                                    }
+                                                }
+                                        )
+                                }
+                                
+                                // Yazılar (Tıklanabilir)
+                                HStack(spacing: 0) {
+                                    ForEach(themes, id: \.self) { theme in
+                                        Text(theme.displayName)
+                                            .font(.system(size: 11, weight: audioSynthesizer.currentTheme == theme ? .bold : .medium))
+                                            .foregroundColor(audioSynthesizer.currentTheme == theme ? .white : .primary.opacity(0.7))
+                                            .frame(width: segmentWidth, height: 36)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                                    audioSynthesizer.setTheme(theme)
+                                                    proxy.scrollTo(theme, anchor: .center)
+                                                }
+                                            }
+                                            .id(theme)
                                     }
-                                    .buttonStyle(PlainButtonStyle())
-                                    .id(theme)
                                 }
                             }
-                            .padding(4)
-                            .background(Capsule().fill(Color.primary.opacity(0.06)))
-                            .gesture(
-                                DragGesture(minimumDistance: 10)
-                                    .onChanged { value in
-                                        let themes = AudioTheme.allCases
-                                        // Basit bir x-pozisyon hesabı ile index bulma
-                                        let index = Int(max(0, min(CGFloat(themes.count - 1), value.location.x / 80)))
-                                        let newTheme = themes[index]
-                                        if newTheme != audioSynthesizer.currentTheme {
-                                            withAnimation(.interactiveSpring(response: 0.2, dampingFraction: 0.9)) {
-                                                audioSynthesizer.setTheme(newTheme)
-                                                proxy.scrollTo(newTheme, anchor: .center)
-                                            }
-                                        }
-                                    }
-                            )
+                            .padding(.horizontal, 4)
                         }
                     }
                 }
