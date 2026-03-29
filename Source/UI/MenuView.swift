@@ -83,6 +83,9 @@ struct MenuView: View {
                         Text("Glockenspiel").tag(AudioTheme.glockenspiel)
                         Text("Wooden Block").tag(AudioTheme.woodenBlock)
                         Text("Vinyl Scratch").tag(AudioTheme.vinylScratch)
+                        Text("Bubble Pop").tag(AudioTheme.bubblePop)
+                        Text("Percussive Djembe").tag(AudioTheme.percussiveDjembe)
+                        Text("Alien Blaster").tag(AudioTheme.alienBlaster)
                     }
                     // Dropdown for 6 options looks better than segments
                     .pickerStyle(MenuPickerStyle()) 
@@ -108,6 +111,10 @@ struct MenuView: View {
             }
             .padding(16)
             
+            // Kırmızı kutu kaybolduğunda arayüzün kendini ekranın ortasına fırlatmasını (merkezlemesini) engeller,
+            // Header'ı her zaman en üste, alt bilgi çubuğunu da her zaman popover'ın en altına yapıştırır.
+            Spacer()
+            
             Divider()
             
             // Alt Bilgi Çubuğu
@@ -125,7 +132,7 @@ struct MenuView: View {
             .padding(12)
             .background(Color(NSColor.controlBackgroundColor))
         }
-        .frame(width: 260)
+        .frame(width: 260, height: 380) // Popover'ın boyutu ile birebir aynı vererek SwiftUI'ı mükemmel hizalarız
         .onReceive(pub) { _ in
             keysPressed += 1
         }

@@ -12,6 +12,9 @@ enum AudioTheme {
     case glockenspiel
     case woodenBlock
     case vinylScratch
+    case bubblePop
+    case percussiveDjembe
+    case alienBlaster
 }
 
 class AudioSynthesizer: ObservableObject {
@@ -28,7 +31,7 @@ class AudioSynthesizer: ObservableObject {
     // Pitch shift for slight randomization
     private let pitchEffect = AVAudioUnitTimePitch()
 
-    // 9 farklı synth buffer
+    // 12 farklı synth buffer
     private var mechanicalBuffer: AVAudioPCMBuffer?
     private var mechanicalClickyBuffer: AVAudioPCMBuffer?
     private var typewriterBuffer: AVAudioPCMBuffer?
@@ -38,6 +41,9 @@ class AudioSynthesizer: ObservableObject {
     private var glockenspielBuffer: AVAudioPCMBuffer?
     private var woodenBlockBuffer: AVAudioPCMBuffer?
     private var vinylScratchBuffer: AVAudioPCMBuffer?
+    private var bubblePopBuffer: AVAudioPCMBuffer?
+    private var percussiveDjembeBuffer: AVAudioPCMBuffer?
+    private var alienBlasterBuffer: AVAudioPCMBuffer?
     
     init() {
         setupEngine()
@@ -85,6 +91,9 @@ class AudioSynthesizer: ObservableObject {
         case .glockenspiel: bufferToPlay = glockenspielBuffer
         case .woodenBlock: bufferToPlay = woodenBlockBuffer
         case .vinylScratch: bufferToPlay = vinylScratchBuffer
+        case .bubblePop: bufferToPlay = bubblePopBuffer
+        case .percussiveDjembe: bufferToPlay = percussiveDjembeBuffer
+        case .alienBlaster: bufferToPlay = alienBlasterBuffer
         }
         
         guard let pcmBuffer = bufferToPlay else { return }
@@ -110,6 +119,9 @@ class AudioSynthesizer: ObservableObject {
         self.glockenspielBuffer = createClickBuffer(format: format, type: .glockenspiel)
         self.woodenBlockBuffer = createClickBuffer(format: format, type: .woodenBlock)
         self.vinylScratchBuffer = createClickBuffer(format: format, type: .vinylScratch)
+        self.bubblePopBuffer = createClickBuffer(format: format, type: .bubblePop)
+        self.percussiveDjembeBuffer = createClickBuffer(format: format, type: .percussiveDjembe)
+        self.alienBlasterBuffer = createClickBuffer(format: format, type: .alienBlaster)
     }
     
     private func loadAudioFile(name: String, format: AVAudioFormat) -> AVAudioPCMBuffer? {
@@ -131,7 +143,7 @@ class AudioSynthesizer: ObservableObject {
         }
     }
     
-    enum SynthType { case mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch }
+    enum SynthType { case mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster }
     
     private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
         let sampleRate = format.sampleRate
@@ -146,6 +158,9 @@ class AudioSynthesizer: ObservableObject {
         case .glockenspiel: duration = 0.12
         case .woodenBlock: duration = 0.05
         case .vinylScratch: duration = 0.08
+        case .bubblePop: duration = 0.05
+        case .percussiveDjembe: duration = 0.08
+        case .alienBlaster: duration = 0.10
         }
         
         let frameCount = AVAudioFrameCount(sampleRate * duration)
@@ -238,6 +253,29 @@ class AudioSynthesizer: ObservableObject {
                 let osc = sin(2.0 * .pi * currentFreq * t)
                 let distorted = osc > 0 ? 0.9 : -0.9
                 sample = (Float(distorted) * 0.5 + noise * 0.5) * env * 0.8
+                
+            case .bubblePop:
+                let env = Float(exp(-t * 80.0))
+                let currentFreq = 600.0 + 1200.0 * (t / duration)
+                let osc = sin(2.0 * .pi * currentFreq * t)
+                sample = Float(osc) * env * 1.6
+                
+            case .percussiveDjembe:
+                let noise = Float.random(in: -1.0...1.0)
+                let env = Float(exp(-t * 200.0))
+                let freq = sin(2.0 * .pi * 180.0 * t) // bas ağırlıklı
+                let freq2 = sin(2.0 * .pi * 300.0 * t) // düşük tiz
+                let thump = (Float(freq) * 0.7 + Float(freq2) * 0.3) * env
+                let snap = noise * Float(exp(-t * 600.0))
+                sample = (thump * 0.9 + snap * 0.1) * 2.0
+                
+            case .alienBlaster:
+                let noise = Float.random(in: -1.0...1.0)
+                let env = Float(exp(-t * 40.0))
+                let currentFreq = 3000.0 * exp(-t * 500.0) // çok hızlı çakılan lazer
+                var osc = sin(2.0 * .pi * currentFreq * t)
+                osc = osc > 0 ? 1.0 : -1.0 // sert distorsiyon
+                sample = (Float(osc) * 0.6 + noise * 0.4) * env * 1.5
             }
             
             // Satürasyon
