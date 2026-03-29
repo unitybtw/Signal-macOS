@@ -28,8 +28,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let contentView = MenuView(audioSynthesizer: audioSynthesizer)
 
         let popover = NSPopover()
-        popover.contentSize = NSSize(width: 260, height: 380)
         popover.behavior = .transient
+        popover.animates = true
         popover.contentViewController = NSHostingController(rootView: contentView)
         
         // Siberpunk temasına uyumlu olması için tamamen saydam ve dark denemesi
@@ -96,7 +96,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if self.popover.isShown {
                 self.popover.performClose(sender)
             } else {
-                self.popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: NSRectEdge.minY)
+                NSApp.activate(ignoringOtherApps: true)
+                self.popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+                self.popover.contentViewController?.view.window?.makeKey()
             }
         }
     }
