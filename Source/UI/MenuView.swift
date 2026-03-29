@@ -24,6 +24,8 @@ struct MenuView: View {
                 Image(systemName: "waveform.path.ecg")
                     .font(.title3)
                     .foregroundColor(audioSynthesizer.hasPermission && !audioSynthesizer.isMuted ? .accentColor : .gray)
+                    .symbolEffect(.bounce, value: keysPressed) // Tuş vuruşunda zıplar
+                
                 Text("Signal")
                     .font(.system(size: 14, weight: .bold))
                 
@@ -33,16 +35,18 @@ struct MenuView: View {
                     Image(systemName: "hand.raised.fill")
                         .foregroundColor(.red)
                         .font(.caption)
+                        .symbolEffect(.pulse)
                 }
             }
             .padding(14)
             .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
+            .transition(.move(edge: .top).combined(with: .opacity))
             
             Divider()
             
             VStack(alignment: .leading, spacing: 16) {
                 
-                // İZİN UYARISI
+                // İZİN UYARISI (ANIMATED)
                 if !audioSynthesizer.hasPermission {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Accessibility Required")
@@ -60,7 +64,7 @@ struct MenuView: View {
                             .controlSize(.small)
                             
                             Button("Check") {
-                                withAnimation {
+                                withAnimation(.spring()) {
                                     audioSynthesizer.hasPermission = AXIsProcessTrusted()
                                 }
                             }
@@ -70,6 +74,7 @@ struct MenuView: View {
                     .padding(10)
                     .background(Color.red.opacity(0.08))
                     .cornerRadius(10)
+                    .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .move(edge: .trailing).combined(with: .opacity)))
                 } else {
                     // --- CANLI TUŞ GEÇMİŞİ ---
                     VStack(alignment: .leading, spacing: 6) {
@@ -85,7 +90,7 @@ struct MenuView: View {
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
                                     .background(RoundedRectangle(cornerRadius: 4).fill(Color.primary.opacity(0.1)))
-                                    .transition(.scale.combined(with: .opacity))
+                                    .transition(.scale(scale: 0.5, anchor: .center).combined(with: .opacity))
                             }
                             
                             if keyHistory.isEmpty {
@@ -99,6 +104,7 @@ struct MenuView: View {
                         }
                         .frame(height: 30)
                     }
+                    .transition(.opacity)
                 }
                 
                 // YATAY PREMİUM APPLE SEÇİCİ (LİKİT GERİ DÖNDÜ)
