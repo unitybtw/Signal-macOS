@@ -35,8 +35,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         let hostingController = NSHostingController(rootView: contentView)
         popover.contentViewController = hostingController
         
-        // Siberpunk temasına uyumlu olması için tamamen saydam ve dark denemesi
-        popover.appearance = NSAppearance(named: .vibrantDark)
+        // Sistemin açık/koyu modunu otomatik takip etmesi için özel görünümü kaldırıyoruz
+        popover.appearance = nil
         self.popover = popover
 
         // Menü çubuğu ikonu - SABİT GENİŞLİK (Konum hatasını önler)

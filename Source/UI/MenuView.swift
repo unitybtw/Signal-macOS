@@ -124,18 +124,18 @@ struct MenuView: View {
                                             .padding(.vertical, 8)
                                             .background(
                                                 ZStack {
-                                                    // Liquid Glass Efekti
+                                                    // Liquid Glass Efekti (Light/Dark Adaptif)
                                                     if isSelected {
                                                         RoundedRectangle(cornerRadius: 8)
-                                                            .fill(LinearGradient(colors: [Color.blue.opacity(0.4), Color.purple.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                                            .blur(radius: 2)
+                                                            .fill(LinearGradient(colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                            .blur(radius: 1)
                                                         
                                                         RoundedRectangle(cornerRadius: 8)
                                                             .stroke(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1.5)
-                                                            .shadow(color: .blue.opacity(0.5), radius: 4)
+                                                            .shadow(color: .blue.opacity(0.3), radius: 3)
                                                     } else {
                                                         RoundedRectangle(cornerRadius: 8)
-                                                            .fill(Color.white.opacity(0.05))
+                                                            .fill(Color.primary.opacity(0.04))
                                                     }
                                                 }
                                             )
@@ -148,7 +148,7 @@ struct MenuView: View {
                             .padding(.vertical, 4)
                         }
                         .onChange(of: audioSynthesizer.currentTheme) { newTheme in
-                            withAnimation {
+                            withAnimation(.spring()) {
                                 proxy.scrollTo(newTheme, anchor: .center)
                             }
                         }
