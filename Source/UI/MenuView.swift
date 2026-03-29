@@ -100,7 +100,7 @@ struct MenuView: View {
                     }
                 }
                 
-                // GERÇEK APPLE STYLE LIQUID GLASS SEÇİCİ
+                // KAYDIRILABİLİR GERÇEK APPLE STYLE LIQUID GLASS SEÇİCİ
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Audio Profile")
                         .font(.system(size: 9, weight: .bold))
@@ -109,28 +109,28 @@ struct MenuView: View {
                     
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 4) {
+                            HStack(spacing: 6) {
                                 ForEach(AudioTheme.allCases, id: \.self) { theme in
                                     let isSelected = audioSynthesizer.currentTheme == theme
                                     
                                     Button(action: {
-                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                                             audioSynthesizer.setTheme(theme)
+                                            proxy.scrollTo(theme, anchor: .center)
                                         }
                                     }) {
                                         Text(theme.displayName)
-                                            .font(.system(size: 11, weight: isSelected ? .semibold : .medium))
-                                            .foregroundColor(isSelected ? .primary : .secondary)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
+                                            .font(.system(size: 11, weight: isSelected ? .bold : .medium))
+                                            .foregroundColor(isSelected ? .white : .primary.opacity(0.7))
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 7)
                                             .background(
                                                 ZStack {
                                                     if isSelected {
-                                                        // Liquid Glass Seçim Göstergesi
                                                         Capsule()
-                                                            .fill(Color.primary.opacity(0.12))
+                                                            .fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
                                                             .matchedGeometryEffect(id: "selection", in: selectionNamespace)
-                                                            .shadow(color: Color.black.opacity(0.05), radius: 2)
+                                                            .shadow(color: .blue.opacity(0.3), radius: 4)
                                                     }
                                                 }
                                             )
@@ -140,15 +140,7 @@ struct MenuView: View {
                                 }
                             }
                             .padding(4)
-                            .background(
-                                Capsule()
-                                    .fill(Color.primary.opacity(0.04))
-                            )
-                        }
-                        .onChange(of: audioSynthesizer.currentTheme) { newTheme in
-                            withAnimation(.spring()) {
-                                proxy.scrollTo(newTheme, anchor: .center)
-                            }
+                            .background(Capsule().fill(Color.primary.opacity(0.05)))
                         }
                     }
                 }
