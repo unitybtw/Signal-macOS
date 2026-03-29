@@ -9,7 +9,7 @@ struct MenuView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // macOS stili Header (Control Center gibi minimal)
+                // Header (Control Center style)
             HStack {
                 Image(systemName: "waveform.path.ecg")
                     .font(.title2)
@@ -25,17 +25,17 @@ struct MenuView: View {
                     Image(systemName: "power")
                 }
                 .buttonStyle(BorderlessButtonStyle())
-                .help("Uygulamayı Kapat")
+                .help("Terminate Application")
             }
             .padding()
             
             Divider()
             
-            // Ayarlar Listesi (Form benzeri native görünüm)
+            // Settings List (Form-like native look)
             VStack(alignment: .leading, spacing: 16) {
-                // Tema Seçici (Native Picker)
+                // Theme Picker (Native Picker)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Ses Profili")
+                    Text("Audio Profile")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
@@ -43,8 +43,8 @@ struct MenuView: View {
                         get: { audioSynthesizer.currentTheme },
                         set: { newTheme in audioSynthesizer.setTheme(newTheme) }
                     )) {
-                        Text("Mekanik (M-Switch)").tag(AudioTheme.mechanical)
-                        Text("Daktilo (Vintage)").tag(AudioTheme.typewriter)
+                        Text("Mechanical (M-Switch)").tag(AudioTheme.mechanical)
+                        Text("Typewriter (Vintage)").tag(AudioTheme.typewriter)
                         Text("Sci-Fi (Terminal)").tag(AudioTheme.scifi)
                     }
                     .pickerStyle(SegmentedPickerStyle())
@@ -54,7 +54,7 @@ struct MenuView: View {
                 // Volume Slider
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
-                        Text("Ses Seviyesi")
+                        Text("Volume Level")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -71,13 +71,13 @@ struct MenuView: View {
             
             Divider()
             
-            // Alt Bilgi Çubuğu (Native Status Bar stili)
+            // Bottom Information Bar (Native Status Bar style)
             HStack {
-                Label("\(keysPressed) vuruş", systemImage: "keyboard")
+                Label("\(keysPressed) strikes", systemImage: "keyboard")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Spacer()
-                Label("Aktif", systemImage: "circle.fill")
+                Label("Active", systemImage: "circle.fill")
                     .font(.caption)
                     .foregroundColor(.green)
             }

@@ -1,57 +1,58 @@
 # 📡 Signal - Keystroke Audio Feedback for macOS
 
-Signal, macOS için geliştirilmiş, klavye vuruşlarınıza gerçek zamanlı ve düşük gecikmeli (low-latency) sesli geri bildirim sağlayan yerel (native) bir menü çubuğu uygulamasıdır. Yazım deneyiminizi daha mekanik, nostaljik veya fütüristik hale getirmek için tasarlanmıştır.
+Signal is a native macOS menu bar application designed to provide real-time, ultra-low-latency audio feedback for your keystrokes. It transforms your typing experience into something mechanical, nostalgic, or futuristic.
 
 ![Signal UI](https://img.shields.io/badge/UX-Native_macOS-blue?style=for-the-badge)
 ![Swift](https://img.shields.io/badge/Language-Swift-orange?style=for-the-badge)
 ![Latency](https://img.shields.io/badge/Latency-%3C5ms-green?style=for-the-badge)
 
-## 🚀 Özellikler
+## 🚀 Features
 
-- **Gerçek Zamanlı Ses Sentezi:** Ses dosyalarını oynatmak yerine, sesleri anlık olarak (On-the-fly) sentezler. Bu sayede işlemci yükü minimuma indirilir ve gecikme hissi (delay) tamamen ortadan kaldırılır.
-- **Üç Farklı Ses Profili:**
-  - **Mekanik:** Modern mekanik klavye (M-Switch) hissiyatı.
-  - **Typewriter:** Klasik vintage daktilo çınlaması.
-  - **Sci-Fi:** Gelecekten gelen terminal sesleri ve lazer efektleri.
-- **Native Arayüz:** Apple'ın kendi tasarımıyla (Control Center stili) tam uyumlu, şeffaf ve minimalist SwiftUI arayüzü.
-- **Menü Çubuğu Yönetimi:** Arka planda sessizce çalışır, menü çubuğundaki ikonu üzerinden anlık ayar yapılmasına olanak tanır.
+- **Real-time Audio Synthesis:** Instead of playing precorded audio files, Signal synthesizes sounds on-the-fly. This minimizes CPU usage and eliminates perceived latency.
+- **Three Unique Sound Profiles:**
+  - **Mechanical:** The tactile feel of a modern mechanical keyboard (M-Switch).
+  - **Typewriter:** The classic chime and clack of a vintage typewriter.
+  - **Sci-Fi:** Futuristic terminal sounds and laser-like electronic blips.
+- **Native Interface:** A minimalist SwiftUI interface that blends perfectly with macOS (Control Center style), featuring dark glassmorphism.
+- **Menu Bar Integration:** Runs quietly in the background, accessible via a sleek status bar icon for quick adjustments.
 
-## 🛠️ Teknik Altyapı
+## 🛠️ Tech Stack
 
-- **Dil:** Swift 5.10+
-- **Frameworkler:** SwiftUI, AppKit, AVFoundation (AVAudioEngine)
-- **Sistem Dinleyici:** `CGEventTap` (Accessibility API) kullanılarak sistem geneli düşük seviyeli klavye dinleme.
-- **Mimari:** Sıfır kütüphane bağımlılığı (Zero-dependency), tamamen yerel Apple API'ları.
+- **Language:** Swift 5.10+
+- **Frameworks:** SwiftUI, AppKit, AVFoundation (AVAudioEngine)
+- **Monitoring:** Low-level system-wide keyboard monitoring using `CGEventTap` (Accessibility API).
+- **Architecture:** Zero-dependency, purely native Apple APIs.
 
-## ⚙️ Kurulum ve Derleme
+## ⚙️ Build and Run
 
-Uygulamayı yerelinizde derlemek için terminale şu komutu yazmanız yeterlidir:
+To build the application locally, simply run the following command in your terminal:
 
 ```bash
 chmod +x build.sh
 ./build.sh
 ```
 
-Derleme bittikten sonra `Signal.app` dosyasını çalıştırabilirsiniz:
+Once the build is complete, you can launch `Signal.app`:
 
 ```bash
 open Signal.app
 ```
 
-## 🔐 Önemli: Erişim İzinleri
+## 🔐 Important: Accessibility Permissions
 
-macOS'un güvenlik protokolleri gereği, uygulamamızın tüm sistem genelindeki klavye vuruşlarını algılayabilmesi için **Erişilebilirlik (Accessibility)** izni alması gerekmektedir.
+Due to macOS security protocols, Signal requires **Accessibility** permissions to detect keyboard events across other applications.
 
-1. **Sistem Ayarları** -> **Gizlilik ve Güvenlik** -> **Erişilebilirlik** yolunu izleyin.
-2. `+` simgesine tıklayarak derlediğiniz `Signal.app` dosyasını listeye ekleyin ve aktifleştirin.
-3. Uygulamayı kapatıp tekrar açtığınızda sesler aktif olacaktır.
+1. Go to **System Settings** -> **Privacy & Security** -> **Accessibility**.
+2. Click the `+` icon and add `Signal.app` from your project folder.
+3. Ensure the toggle is turned ON.
+4. Restart Signal if necessary.
 
-## 📂 Dosya Yapısı
+## 📂 Project Structure
 
-- `Source/Core`: Klavye dinleme ve ses sentezleme motorları.
-- `Source/UI`: SwiftUI tabanlı native arayüz dosyaları.
-- `SignalApp.swift`: Uygulama yaşam döngüsü ve menü bar yönetimi.
-- `build.sh`: Uygulamayı `.app` paketine çeviren derleme scripti.
+- `Source/Core`: Keyboard monitoring and audio synthesis engines.
+- `Source/UI`: SwiftUI-based native interface components.
+- `SignalApp.swift`: Main application lifecycle and status item management.
+- `build.sh`: Bash script to compile and bundle the `.app` package.
 
 ---
-*Geliştiren: [unitybtw](https://github.com/unitybtw)*
+*Developed by [unitybtw](https://github.com/unitybtw)*
