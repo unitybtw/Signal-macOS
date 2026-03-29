@@ -1,0 +1,12 @@
+# macOS and Build artifacts
+.DS_Store
+Signal.app/
+*.o
+*.out
+*.exe
+build/
+DerivedData/
+
+# Xcode (If added later)
+xcuserdata/
+*.xcworkspace
