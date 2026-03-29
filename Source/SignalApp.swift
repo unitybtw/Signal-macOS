@@ -14,13 +14,14 @@ struct SignalAppBootstrap {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     var popover: NSPopover!
     var statusBarItem: NSStatusItem!
+    var eventMonitor: Any? // Mouse clicks monitor
     
     // Core Dependencies
-    let eventMonitor = EventTapMonitor()
+    let keyEventMonitor = EventTapMonitor()
     let audioSynthesizer = AudioSynthesizer()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -30,6 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.animates = true
+        popover.delegate = self
         let hostingController = NSHostingController(rootView: contentView)
         popover.contentViewController = hostingController
         
@@ -55,9 +57,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Klavye dinlemeyi ve ses sentezlemeyi başlat
         audioSynthesizer.start()
         
-        
         // Dinleyiciye basma olayı gelince sentezleyiciye aktar
-        eventMonitor.onKeyDown = { [weak self] event in
+        keyEventMonitor.onKeyDown = { [weak self] event in
             DispatchQueue.main.async {
                 self?.audioSynthesizer.playKeySound()
                 NotificationCenter.default.post(name: NSNotification.Name("KeyPressNotification"), object: nil)
@@ -66,11 +67,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Kullanıcı sonradan izin verirse dinleyiciyi (EventTap) yeniden başlat
         NotificationCenter.default.addObserver(forName: NSNotification.Name("RestartMonitor"), object: nil, queue: .main) { [weak self] _ in
-            self?.eventMonitor.stop()
-            self?.eventMonitor.start()
+            self?.keyEventMonitor.stop()
+            self?.keyEventMonitor.start()
         }
         
-        eventMonitor.start()
+        keyEventMonitor.start()
+        
+        // DIŞARI TIKLANDIĞINDA KAPATMA MONİTÖRÜ
+        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            if let self = self, self.popover.isShown {
+                self.closePopover(event)
+            }
+        }
     }
 
     @objc func togglePopover(_ sender: NSStatusBarButton) {
@@ -87,7 +95,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             quitItem.target = self
             menu.addItem(quitItem)
             
-            // Popover açıksa kapat
             if self.popover.isShown {
                 self.popover.performClose(sender)
             }
@@ -95,24 +102,40 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height + 5), in: sender)
         } else {
             if self.popover.isShown {
-                self.popover.performClose(sender)
+                self.closePopover(sender)
             } else {
-                NSApp.activate(ignoringOtherApps: true)
-                // ASLA makeKey() çağırma! NSPopover'ı menü çubuğundan koparıp, ekranın ortasında normal bir pencereye dönüştürüyor!
-                self.popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+                showPopover(sender)
             }
         }
+    }
+
+    func showPopover(_ sender: NSStatusBarButton) {
+        NSApp.activate(ignoringOtherApps: true)
+        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+        // Pencerenin odağı almasını sağla ki dışarı tıklandığında kapansın
+        popover.contentViewController?.view.window?.makeKey()
+    }
+
+    func closePopover(_ sender: Any?) {
+        popover.performClose(sender)
+    }
+
+    // NSPopoverDelegate: Pencerenin kopup (detach) ekran ortasına gitmesini engeller
+    func popoverShouldDetach(_ popover: NSPopover) -> Bool {
+        return false
     }
     
     @objc func toggleMute() {
         audioSynthesizer.isMuted.toggle()
-        // İkonu sessize alındığında gri yapmak için (Opsiyonel)
         if let button = self.statusBarItem.button {
             button.alphaValue = audioSynthesizer.isMuted ? 0.3 : 1.0
         }
     }
     
     @objc func quitApp() {
+        if let eventMonitor = eventMonitor {
+            NSEvent.removeMonitor(eventMonitor)
+        }
         NSApplication.shared.terminate(nil)
     }
 }
