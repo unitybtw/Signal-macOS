@@ -28,6 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let contentView = MenuView(audioSynthesizer: audioSynthesizer)
 
         let popover = NSPopover()
+        popover.contentSize = NSSize(width: 260, height: 380)
         popover.behavior = .transient
         popover.animates = true
         popover.contentViewController = NSHostingController(rootView: contentView)
@@ -97,8 +98,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.popover.performClose(sender)
             } else {
                 NSApp.activate(ignoringOtherApps: true)
+                // ASLA makeKey() çağırma! NSPopover'ı menü çubuğundan koparıp, ekranın ortasında normal bir pencereye dönüştürüyor!
                 self.popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-                self.popover.contentViewController?.view.window?.makeKey()
             }
         }
     }

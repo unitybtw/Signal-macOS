@@ -80,6 +80,9 @@ struct MenuView: View {
                         Text("Sci-Fi").tag(AudioTheme.scifi)
                         Text("Arcade").tag(AudioTheme.arcade)
                         Text("Plop (Water)").tag(AudioTheme.waterDrop)
+                        Text("Glockenspiel").tag(AudioTheme.glockenspiel)
+                        Text("Wooden Block").tag(AudioTheme.woodenBlock)
+                        Text("Vinyl Scratch").tag(AudioTheme.vinylScratch)
                     }
                     // Dropdown for 6 options looks better than segments
                     .pickerStyle(MenuPickerStyle()) 
