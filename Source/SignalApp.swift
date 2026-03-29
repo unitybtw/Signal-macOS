@@ -111,8 +111,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     func showPopover(_ sender: NSStatusBarButton) {
         NSApp.activate(ignoringOtherApps: true)
+        // .minY refers to the bottom edge of the button in coordinate space
         popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-        // Pencerenin odağı almasını sağla ki dışarı tıklandığında kapansın
+        // Bu komut odağı ele alır ki dışarı tıklayınca kapansın
         popover.contentViewController?.view.window?.makeKey()
     }
 

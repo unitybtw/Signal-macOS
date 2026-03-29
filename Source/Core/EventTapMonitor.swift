@@ -42,7 +42,7 @@ class EventTapMonitor {
             // Run loop'a ekle (arka planda dinlemek için)
             runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, port, 0)
             if let source = runLoopSource {
-                CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
+                CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
                 CGEvent.tapEnable(tap: port, enable: true)
                 print("EventTap Monitor: Başarıyla başlatıldı.")
             }
