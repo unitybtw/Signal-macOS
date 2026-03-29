@@ -109,7 +109,7 @@ struct MenuView: View {
                     .transition(.opacity)
                 }
                 
-                // YATAY PREMİUM APPLE SEÇİCİ (LİKİT GERİ DÖNDÜ)
+                // ANTIGRAVITY SEÇİMİ: PREMİUM PURE GLASS SEÇİCİ
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Audio Profile")
                         .font(.system(size: 9, weight: .bold))
@@ -118,83 +118,44 @@ struct MenuView: View {
                     
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal, showsIndicators: false) {
-                            ZStack(alignment: .leading) {
-                                // ARALIKLI CAM KANAL (Apple Style)
-                                Capsule()
-                                    .fill(Color.primary.opacity(0.04))
-                                    .frame(height: 38)
-                                    .overlay(Capsule().stroke(Color.primary.opacity(0.05), lineWidth: 0.5))
-                                
-                                // LİKİT (GOOEY) KATMANI
-                                let themes = AudioTheme.allCases
-                                let segmentWidth: CGFloat = 100
-                                
-                                Canvas { context, size in
-                                    // 1. Gooey/Sıvı Efekti Filtreleri
-                                    context.addFilter(.alphaThreshold(min: 0.5, color: .blue))
-                                    context.addFilter(.blur(radius: 12))
+                            HStack(spacing: 8) {
+                                ForEach(AudioTheme.allCases, id: \.self) { theme in
+                                    let isSelected = audioSynthesizer.currentTheme == theme
                                     
-                                    context.drawLayer { ctx in
-                                        if let currentIndex = themes.firstIndex(of: audioSynthesizer.currentTheme) {
-                                            // Asıl Baloncuk
-                                            let targetX = CGFloat(currentIndex) * segmentWidth + (segmentWidth / 2)
-                                            let currentX = isDragging ? dragOffset + (segmentWidth / 2) - 4 : targetX
-                                            
-                                            // Seçim Baloncuğu (Ana Kütle)
-                                            ctx.fill(
-                                                Circle().path(in: CGRect(x: currentX - 16, y: size.height/2 - 16, width: 32, height: 32)),
-                                                with: .color(.blue)
-                                            )
+                                    Button(action: {
+                                        withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.75, blendDuration: 0.3)) {
+                                            audioSynthesizer.setTheme(theme)
+                                            proxy.scrollTo(theme, anchor: .center)
                                         }
-                                    }
-                                }
-                                .frame(height: 38)
-                                .animation(.interactiveSpring(response: 0.45, dampingFraction: 0.7, blendDuration: 0.45), value: audioSynthesizer.currentTheme)
-                                .animation(.interactiveSpring(response: 0.45, dampingFraction: 0.7, blendDuration: 0.45), value: dragOffset)
-                                
-                                // ETKİLEŞİM VE YAZILAR
-                                HStack(spacing: 0) {
-                                    ForEach(themes, id: \.self) { theme in
+                                    }) {
                                         Text(theme.displayName)
-                                            .font(.system(size: 10, weight: audioSynthesizer.currentTheme == theme ? .bold : .medium))
-                                            .foregroundColor(audioSynthesizer.currentTheme == theme ? .white : .primary.opacity(0.7))
-                                            .frame(width: segmentWidth, height: 38)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                withAnimation(.interactiveSpring(response: 0.45, dampingFraction: 0.7, blendDuration: 0.45)) {
-                                                    audioSynthesizer.setTheme(theme)
-                                                    proxy.scrollTo(theme, anchor: .center)
+                                            .font(.system(size: 11, weight: isSelected ? .bold : .medium))
+                                            .foregroundColor(isSelected ? .white : .primary.opacity(0.8))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                ZStack {
+                                                    if isSelected {
+                                                        Capsule()
+                                                            .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                            .matchedGeometryEffect(id: "pureGlassSelection", in: selectionNamespace)
+                                                            .shadow(color: .blue.opacity(0.4), radius: 8, y: 2)
+                                                            .overlay(Capsule().stroke(.white.opacity(0.2), lineWidth: 1))
+                                                    } else {
+                                                        Capsule()
+                                                            .fill(Color.primary.opacity(0.04))
+                                                    }
                                                 }
-                                            }
-                                            .gesture(
-                                                DragGesture()
-                                                    .onChanged { value in
-                                                        if !isDragging { isDragging = true }
-                                                        if let baseIndex = themes.firstIndex(of: audioSynthesizer.currentTheme) {
-                                                            withAnimation(.interactiveSpring()) {
-                                                                dragOffset = (CGFloat(baseIndex) * segmentWidth + 4) + value.translation.width
-                                                            }
-                                                        }
-                                                    }
-                                                    .onEnded { value in
-                                                        let finalX = dragOffset + value.predictedEndTranslation.width / 2
-                                                        let nearestIndex = Int(round(max(0, finalX) / segmentWidth))
-                                                        let safeIndex = min(themes.count - 1, nearestIndex)
-                                                        
-                                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                                            audioSynthesizer.setTheme(themes[safeIndex])
-                                                            isDragging = false
-                                                            proxy.scrollTo(themes[safeIndex], anchor: .center)
-                                                        }
-                                                    }
                                             )
-                                            .id(theme)
                                     }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .id(theme)
                                 }
                             }
-                            .padding(.horizontal, 4)
+                            .padding(4)
                         }
                     }
+                }
                 }
                 
                 // Dynamic Audio Pulse Waveform
