@@ -6,7 +6,6 @@ struct MenuView: View {
     
     @State private var keysPressed: Int = 0
     @State private var recentKeystrokes: [Date] = []
-    @State private var hasPermission: Bool = AXIsProcessTrusted()
     let pub = NotificationCenter.default.publisher(for: NSNotification.Name("KeyPressNotification"))
 
     var body: some View {
@@ -15,7 +14,7 @@ struct MenuView: View {
             HStack {
                 Image(systemName: "waveform.path.ecg")
                     .font(.title2)
-                    .foregroundColor(hasPermission && !audioSynthesizer.isMuted ? .accentColor : .gray)
+                    .foregroundColor(audioSynthesizer.hasPermission && !audioSynthesizer.isMuted ? .accentColor : .gray)
                 Text("Signal")
                     .font(.headline)
                 
@@ -27,48 +26,48 @@ struct MenuView: View {
             Divider()
             
             // Ayarlar Listesi
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 18) {
                 
                 // İZİN UYARISI
-                if !hasPermission {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Label("Accessibility Required", systemImage: "exclamationmark.triangle.fill")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(.red)
-                        Text("Signal needs key logging permission to play sounds.")
-                            .font(.caption)
+                if !audioSynthesizer.hasPermission {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                            Text("Accessibility Required")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(.primary)
+                        }
+                        
+                        Text("Please allow 'Signal' in Settings > Privacy > Accessibility to detect keystrokes.")
+                            .font(.system(size: 11))
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         
-                        Button("Open Settings") {
-                            let urlString = "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
-                            if let url = URL(string: urlString) {
-                                NSWorkspace.shared.open(url)
+                        HStack {
+                            Button("Open Settings") {
+                                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
                             }
-                        }
-                        .controlSize(.small)
-                        
-                        Button("Check Permission") {
-                            withAnimation {
-                                let newStatus = AXIsProcessTrusted()
-                                if newStatus && !hasPermission {
-                                    NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
-                                }
-                                hasPermission = newStatus
+                            .controlSize(.small)
+                            
+                            Button("Check Again") {
+                                audioSynthesizer.hasPermission = AXIsProcessTrusted()
                             }
+                            .controlSize(.small)
                         }
-                        .controlSize(.small)
+                        .padding(.top, 4)
                     }
-                    .padding()
-                    .background(Color.red.opacity(0.1))
-                    .cornerRadius(8)
+                    .padding(12)
+                    .background(Color.red.opacity(0.08))
+                    .cornerRadius(10)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.red.opacity(0.2), lineWidth: 1))
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 
                 // Tema Seçici
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Audio Profile")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundColor(.secondary)
                         .textCase(.uppercase)
                     
@@ -98,23 +97,24 @@ struct MenuView: View {
                     }
                     .pickerStyle(MenuPickerStyle()) 
                     .labelsHidden()
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.05)))
                 }
                 
                 // Volume
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Volume")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.secondary)
                             .textCase(.uppercase)
                         Spacer()
                         Text("\(Int(audioSynthesizer.volume * 100))%")
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(.system(size: 10, design: .monospaced))
                             .foregroundColor(.secondary)
                     }
                     
                     Slider(value: $audioSynthesizer.volume, in: 0...1)
-                        .accentColor(hasPermission ? .accentColor : .gray)
+                        .accentColor(audioSynthesizer.hasPermission ? .accentColor : .gray)
                 }
             }
             .padding(16)
@@ -129,23 +129,24 @@ struct MenuView: View {
                 
                 Spacer()
                 
-                let wpm = (Double(recentKeystrokes.count) * 12.0) / 5.0
+                let wpmCount = Double(recentKeystrokes.count)
+                let wpm = (wpmCount * 12.0) / 5.0
                 Label("\(Int(wpm)) WPM", systemImage: "bolt.fill")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundColor(wpm > 0 ? .orange : .gray)
                 
                 Spacer()
                 
-                let isReallyActive = hasPermission && !audioSynthesizer.isMuted
+                let isReallyActive = audioSynthesizer.hasPermission && !audioSynthesizer.isMuted
                 Label(isReallyActive ? "Active" : "Silenced", systemImage: "circle.fill")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(isReallyActive ? .green : .red)
+                    .foregroundColor(isReallyActive ? (audioSynthesizer.hasPermission ? .green : .orange) : .red)
             }
             .padding(12)
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
         }
         .frame(width: 260)
-        .animation(.spring(), value: hasPermission)
+        .animation(.spring(), value: audioSynthesizer.hasPermission)
         .onReceive(pub) { _ in
             keysPressed += 1
             let now = Date()
@@ -155,9 +156,6 @@ struct MenuView: View {
         .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
             let now = Date()
             recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
-        }
-        .onAppear {
-            hasPermission = AXIsProcessTrusted()
         }
     }
 }

@@ -23,6 +23,7 @@ enum AudioTheme {
 class AudioSynthesizer: ObservableObject {
     @Published var currentTheme: AudioTheme = .mechanical
     @Published var isMuted: Bool = false
+    @Published var hasPermission: Bool = AXIsProcessTrusted()
     @Published var volume: Float = 0.5 {
         didSet {
             engine.mainMixerNode.outputVolume = volume
@@ -31,10 +32,9 @@ class AudioSynthesizer: ObservableObject {
     
     private let engine = AVAudioEngine()
     private let playerNode = AVAudioPlayerNode()
-    // Pitch shift for slight randomization
     private let pitchEffect = AVAudioUnitTimePitch()
 
-    // 12 farklı synth buffer
+    // Synth Buffers
     private var mechanicalBuffer: AVAudioPCMBuffer?
     private var mechanicalClickyBuffer: AVAudioPCMBuffer?
     private var typewriterBuffer: AVAudioPCMBuffer?
@@ -55,8 +55,19 @@ class AudioSynthesizer: ObservableObject {
         setupEngine()
         generateSynthBuffers()
         
+        // Periyodik izin kontrolü (Kullanıcı ayarlardan açarsa anında algılamak için)
+        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+            let status = AXIsProcessTrusted()
+            if status != self?.hasPermission {
+                self?.hasPermission = status
+                if status {
+                    NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
+                }
+            }
+        }
+        
         // --- Uygulama Açılış Sesi ---
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.playStartupSound()
         }
     }
