@@ -88,7 +88,8 @@ struct MenuView: View {
                             
                             if keyHistory.isEmpty {
                                 Text("Type something...")
-                                    .font(.system(size: 11, italic: true))
+                                    .font(.system(size: 11))
+                                    .italic()
                                     .foregroundColor(.secondary.opacity(0.5))
                             }
                             
