@@ -123,27 +123,30 @@ struct MenuView: View {
                                     let isSelected = audioSynthesizer.currentTheme == theme
                                     
                                     Button(action: {
-                                        withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.75, blendDuration: 0.3)) {
+                                        withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8, blendDuration: 0.2)) {
                                             audioSynthesizer.setTheme(theme)
                                             proxy.scrollTo(theme, anchor: .center)
                                         }
                                     }) {
                                         Text(theme.displayName)
                                             .font(.system(size: 11, weight: isSelected ? .bold : .medium))
-                                            .foregroundColor(isSelected ? .white : .primary.opacity(0.8))
-                                            .padding(.horizontal, 20) // Daha geniş
-                                            .padding(.vertical, 10) // Daha ferah
+                                            .foregroundColor(isSelected ? .primary : .primary.opacity(0.6))
+                                            .padding(.horizontal, 18)
+                                            .padding(.vertical, 8)
                                             .background(
                                                 ZStack {
                                                     if isSelected {
                                                         Capsule()
-                                                            .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                            .fill(Color.primary.opacity(0.12)) // Şeffaf koyu/açık cam etkisi
                                                             .matchedGeometryEffect(id: "pureGlassSelection", in: selectionNamespace)
-                                                            .shadow(color: .blue.opacity(0.4), radius: 10, y: 3)
-                                                            .overlay(Capsule().stroke(.white.opacity(0.2), lineWidth: 1))
+                                                            .overlay(
+                                                                Capsule()
+                                                                    .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                                                            )
+                                                            .shadow(color: Color.black.opacity(0.05), radius: 4, y: 1)
                                                     } else {
                                                         Capsule()
-                                                            .fill(Color.primary.opacity(0.05))
+                                                            .fill(Color.primary.opacity(0.03))
                                                     }
                                                 }
                                             )
