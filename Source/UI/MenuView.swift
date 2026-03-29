@@ -58,7 +58,11 @@ struct MenuView: View {
                         .padding(.top, 4)
                         
                         Button("İzni Kontrol Et") {
-                            hasPermission = AXIsProcessTrusted()
+                            let newStatus = AXIsProcessTrusted()
+                            if newStatus && !hasPermission {
+                                NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
+                            }
+                            hasPermission = newStatus
                         }
                         .controlSize(.small)
                     }

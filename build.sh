@@ -29,5 +29,8 @@ swiftc -g -Onone \
   -Xlinker -rpath -Xlinker @executable_path/../Frameworks \
   $SOURCES -o "$MACOS_DIR/$APP_NAME"
 
+echo "🔐 Uygulama Kod İmzası (Code Sign) oluşturuluyor..."
+codesign -s "-" --force --deep "$APP_DIR"
+
 echo "✅ Derleme başarılı! Uygulama '$APP_DIR' olarak hazırlandı."
 echo "Çalıştırmak için: open $APP_DIR"

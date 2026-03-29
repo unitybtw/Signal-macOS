@@ -54,12 +54,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Klavye dinlemeyi ve ses sentezlemeyi başlat
         audioSynthesizer.start()
         
+        
         // Dinleyiciye basma olayı gelince sentezleyiciye aktar
         eventMonitor.onKeyDown = { [weak self] event in
             DispatchQueue.main.async {
                 self?.audioSynthesizer.playKeySound()
                 NotificationCenter.default.post(name: NSNotification.Name("KeyPressNotification"), object: nil)
             }
+        }
+        
+        // Kullanıcı sonradan izin verirse dinleyiciyi (EventTap) yeniden başlat
+        NotificationCenter.default.addObserver(forName: NSNotification.Name("RestartMonitor"), object: nil, queue: .main) { [weak self] _ in
+            self?.eventMonitor.stop()
+            self?.eventMonitor.start()
         }
         
         eventMonitor.start()
