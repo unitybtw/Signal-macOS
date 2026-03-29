@@ -24,7 +24,7 @@ struct MenuView: View {
                 Image(systemName: "waveform.path.ecg")
                     .font(.title3)
                     .foregroundColor(audioSynthesizer.hasPermission && !audioSynthesizer.isMuted ? .accentColor : .gray)
-                    .symbolEffect(.bounce, value: keysPressed) // Tuş vuruşunda zıplar
+                    .scaleEffect(audioPulseActive ? 1.2 : 1.0)
                 
                 Text("Signal")
                     .font(.system(size: 14, weight: .bold))
@@ -35,7 +35,7 @@ struct MenuView: View {
                     Image(systemName: "hand.raised.fill")
                         .foregroundColor(.red)
                         .font(.caption)
-                        .symbolEffect(.pulse)
+                        .opacity(audioPulseActive ? 0.5 : 1.0)
                 }
             }
             .padding(14)
