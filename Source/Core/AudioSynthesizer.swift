@@ -103,56 +103,87 @@ class AudioSynthesizer: ObservableObject {
     enum SynthType { case mechanical, typewriter, scifi }
     
     private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
-        // Çok kısa bir sample süresi (0.05 saniye = ~2205 frame @ 44.1kHz)
         let sampleRate = format.sampleRate
-        let duration: Double = (type == .scifi) ? 0.08 : 0.04
-        let frameCount = AVAudioFrameCount(sampleRate * duration)
+        // Her ses için süreler farklı (0.04 - 0.1 sn arası)
+        let duration: Double
+        switch type {
+        case .mechanical: duration = 0.04
+        case .typewriter: duration = 0.08
+        case .scifi:      duration = 0.06
+        }
         
+        let frameCount = AVAudioFrameCount(sampleRate * duration)
         guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return nil }
         buffer.frameLength = frameCount
-        
         guard let channelData = buffer.floatChannelData?[0] else { return nil }
         
         for i in 0..<Int(frameCount) {
-            let time = Double(i) / sampleRate
+            let t = Double(i) / sampleRate
             var sample: Float = 0.0
-            
-            // Envelope (Hızlı saldırı, hızlı sönümleme) - Tık sesi!
-            let attackTime: Double = 0.002
-            let decayTime: Double = duration - attackTime
-            let envelope: Float
-            if time < attackTime {
-                envelope = Float(time / attackTime)
-            } else {
-                envelope = Float(1.0 - (time - attackTime) / decayTime)
-            }
             
             switch type {
             case .mechanical:
-                // Çift tıklama etkisi (Anahtar basımı ve dibe vurma) + Beyaz Gürültü (Plastik tok sesi)
+                // --- GERÇEKÇİ MEKANİK "THOCK" ---
+                // Kalın plastik gövde ve tok bir vuruş hissi.
                 let noise = Float.random(in: -1.0...1.0)
-                let freq: Float = time < 0.01 ? 1200 : 400
-                let osc = sin(2.0 * .pi * freq * Float(time))
-                sample = (osc * 0.3 + noise * 0.7)
+                
+                // Attack (Keskin plastik çarpması)
+                let attackEnv = Float(exp(-t * 800.0)) // Çok hızlı sönümlenen darbe
+                let bodyEnv = Float(exp(-t * 150.0))   // Gövde rezonansı
+                
+                // Rezonans frekansları (Thock hissi için düşük frekans ağırlıklı)
+                let freq1 = sin(2.0 * .pi * 120.0 * t) // Alt gövde tok sesi (Bass)
+                let freq2 = sin(2.0 * .pi * 250.0 * t) // Orta sertlik
+                let freq3 = sin(2.0 * .pi * 3000.0 * t) // Switch'in plastik çarpma click'i
+                
+                // Karışım: Bass rezonansları gövde zarfı ile, click ve gürültü darbe zarfı ile filtreleniyor
+                let clickPart = (Float(freq3) * 0.2 + noise * 0.4) * attackEnv
+                let thockPart = (Float(freq1) * 0.6 + Float(freq2) * 0.3 + noise * 0.1) * bodyEnv
+                
+                sample = (clickPart + thockPart) * 1.5
                 
             case .typewriter:
-                // Metalik çınlama (Metallic ping): Yüksek frekans ve daha sert gürültü
+                // --- VINTAGE DAKTİLO ---
+                // Metalik, yaylı ve çınlamalı bir ses.
                 let noise = Float.random(in: -1.0...1.0)
-                let freq: Float = 3000
-                let ping = sin(2.0 * .pi * freq * Float(time))
-                sample = (ping * 0.5 + noise * 0.5)
+                
+                // Daktilo tırnağının metale çarpması ve yay çınlaması
+                let impactEnv = Float(exp(-t * 600.0))
+                let ringEnv = Float(exp(-t * 50.0)) // Uzun metalik çınlama
+                
+                // Metal çınlama frekansları (birlikte uyumsuz harmonikler oluşturur)
+                let ring1 = sin(2.0 * .pi * 1200.0 * t)
+                let ring2 = sin(2.0 * .pi * 2400.0 * t)
+                let ring3 = sin(2.0 * .pi * 3600.0 * t)
+                
+                let impact = noise * impactEnv
+                let metallicRing = (Float(ring1) * 0.4 + Float(ring2) * 0.3 + Float(ring3) * 0.3) * ringEnv
+                
+                sample = (impact * 0.6 + metallicRing * 0.4) * 1.8
                 
             case .scifi:
-                // Lazer/Elektronik blip: Frekansı hızla düşen bir sinüs dalgası (Sweep down)
-                let startFreq: Float = 2500
-                let endFreq: Float = 400
-                let currentFreq = startFreq - ((startFreq - endFreq) * Float(time / duration))
-                let osc = sin(2.0 * .pi * currentFreq * Float(time))
-                // Hafif kare dalga karakteri ver
-                sample = osc > 0 ? 0.8 : -0.8
+                // --- SİBERPUNK / SCİ-Fİ ---
+                // Frekansı hızla düşen (Pew) dijital lazerimsi sinyal.
+                let env = Float(exp(-t * 80.0))
+                
+                // Frekans 3000'den 500'e üstel olarak çok hızlı düşer
+                let currentFreq = 500.0 + 2500.0 * exp(-t * 300.0)
+                var osc = sin(2.0 * .pi * currentFreq * t)
+                
+                // Kare dalga efekti (Dijital distorsiyon / retro oyun tarzı)
+                osc = osc > 0 ? 0.7 : -0.7
+                
+                // Hafif bir beyaz gürültü ekle ki tamamen "beep" gibi olmasın, daha havalı olsun
+                let noise = Float.random(in: -1.0...1.0) * 0.1
+                
+                sample = (Float(osc) + noise) * env * 1.2
             }
             
-            channelData[i] = sample * envelope
+            // Satürasyon (Çok yüksek sinyalleri yumuşakça bastırmak için - Distortion engeller)
+            if sample > 1.0 { sample = 1.0 }
+            if sample < -1.0 { sample = -1.0 }
+            
+            channelData[i] = sample
         }
         
         return buffer
