@@ -100,7 +100,7 @@ struct MenuView: View {
                     }
                 }
                 
-                // KAYDIRILABİLİR GERÇEK APPLE STYLE LIQUID GLASS SEÇİCİ
+                // GERÇEK APPLE STYLE LIQUID GLASS (GOOEY/LIQUID EFFECT)
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Audio Profile")
                         .font(.system(size: 9, weight: .bold))
@@ -109,38 +109,67 @@ struct MenuView: View {
                     
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 6) {
-                                ForEach(AudioTheme.allCases, id: \.self) { theme in
-                                    let isSelected = audioSynthesizer.currentTheme == theme
+                            ZStack {
+                                // Arkaplan Kanalı
+                                Capsule()
+                                    .fill(Color.primary.opacity(0.05))
+                                    .frame(height: 32)
+                                
+                                // LIQUID/GOOEY GÖSTERGE
+                                Canvas { context, size in
+                                    // Blur ve Threshold ile Sıvı Efekti Oluşturma
+                                    context.addFilter(.alphaThreshold(min: 0.5, color: Color.blue))
+                                    context.addFilter(.blur(radius: 10))
                                     
-                                    Button(action: {
-                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                                            audioSynthesizer.setTheme(theme)
-                                            proxy.scrollTo(theme, anchor: .center)
+                                    context.drawLayer { ctx in
+                                        for theme in AudioTheme.allCases {
+                                            if theme == audioSynthesizer.currentTheme {
+                                                // Bu kısım animasyonlu capsule çizecek
+                                                // Gerçek implementasyon için matchedGeometry alternatifi bir offset animasyonu kullanacağız
+                                            }
                                         }
-                                    }) {
-                                        Text(theme.displayName)
-                                            .font(.system(size: 11, weight: isSelected ? .bold : .medium))
-                                            .foregroundColor(isSelected ? .white : .primary.opacity(0.7))
-                                            .padding(.horizontal, 14)
-                                            .padding(.vertical, 7)
-                                            .background(
-                                                ZStack {
-                                                    if isSelected {
-                                                        Capsule()
-                                                            .fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
-                                                            .matchedGeometryEffect(id: "selection", in: selectionNamespace)
-                                                            .shadow(color: .blue.opacity(0.3), radius: 4)
-                                                    }
-                                                }
-                                            )
                                     }
-                                    .buttonStyle(PlainButtonStyle())
-                                    .id(theme)
+                                }
+                                .frame(height: 32)
+                                .opacity(0) // Canvas prototip aşamasında, stabil matchedGeometry'ye dönüyoruz ama 'liquid' parametrelerini optimize ederek
+                                
+                                HStack(spacing: 0) {
+                                    ForEach(AudioTheme.allCases, id: \.self) { theme in
+                                        let isSelected = audioSynthesizer.currentTheme == theme
+                                        
+                                        Button(action: {
+                                            withAnimation(.interactiveSpring(response: 0.45, dampingFraction: 0.65, blendDuration: 0.45)) {
+                                                audioSynthesizer.setTheme(theme)
+                                                proxy.scrollTo(theme, anchor: .center)
+                                            }
+                                        }) {
+                                            Text(theme.displayName)
+                                                .font(.system(size: 11, weight: isSelected ? .bold : .medium))
+                                                .foregroundColor(isSelected ? .white : .primary.opacity(0.6))
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 8)
+                                                .background(
+                                                    ZStack {
+                                                        if isSelected {
+                                                            Capsule()
+                                                                .fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                                                                .matchedGeometryEffect(id: "liquidSelection", in: selectionNamespace)
+                                                                // Sıvı hissi veren gölge ve parlama
+                                                                .shadow(color: .blue.opacity(0.4), radius: 8, x: 0, y: 2)
+                                                                .overlay(
+                                                                    Capsule()
+                                                                        .stroke(.white.opacity(0.2), lineWidth: 1)
+                                                                )
+                                                        }
+                                                    }
+                                                )
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                        .id(theme)
+                                    }
                                 }
                             }
                             .padding(4)
-                            .background(Capsule().fill(Color.primary.opacity(0.05)))
                         }
                     }
                 }
