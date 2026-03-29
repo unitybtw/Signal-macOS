@@ -48,6 +48,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             button.action = #selector(togglePopover(_:))
             button.target = self
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
         
         // Klavye dinlemeyi ve ses sentezlemeyi başlat
@@ -64,13 +65,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         eventMonitor.start()
     }
 
-    @objc func togglePopover(_ sender: AnyObject?) {
-        if let button = self.statusBarItem.button {
+    @objc func togglePopover(_ sender: NSStatusBarButton) {
+        if let event = NSApp.currentEvent, event.type == .rightMouseUp {
+            let menu = NSMenu()
+            
+            let muteItem = NSMenuItem(title: audioSynthesizer.isMuted ? "▶️ Sesleri Aç" : "⏸️ Devre Dışı Bırak", action: #selector(toggleMute), keyEquivalent: "")
+            muteItem.target = self
+            menu.addItem(muteItem)
+            
+            menu.addItem(NSMenuItem.separator())
+            
+            let quitItem = NSMenuItem(title: "Signal'den Çık", action: #selector(quitApp), keyEquivalent: "q")
+            quitItem.target = self
+            menu.addItem(quitItem)
+            
+            // Popover açıksa kapat
+            if self.popover.isShown {
+                self.popover.performClose(sender)
+            }
+            
+            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height + 5), in: sender)
+        } else {
             if self.popover.isShown {
                 self.popover.performClose(sender)
             } else {
-                self.popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+                self.popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: NSRectEdge.minY)
+                self.popover.contentViewController?.view.window?.makeKey()
             }
         }
+    }
+    
+    @objc func toggleMute() {
+        audioSynthesizer.isMuted.toggle()
+        // İkonu sessize alındığında gri yapmak için (Opsiyonel)
+        if let button = self.statusBarItem.button {
+            button.alphaValue = audioSynthesizer.isMuted ? 0.3 : 1.0
+        }
+    }
+    
+    @objc func quitApp() {
+        NSApplication.shared.terminate(nil)
     }
 }

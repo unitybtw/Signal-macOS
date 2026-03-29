@@ -10,6 +10,7 @@ enum AudioTheme {
 
 class AudioSynthesizer: ObservableObject {
     @Published var currentTheme: AudioTheme = .mechanical
+    @Published var isMuted: Bool = false
     @Published var volume: Float = 0.5 {
         didSet {
             engine.mainMixerNode.outputVolume = volume
@@ -57,7 +58,7 @@ class AudioSynthesizer: ObservableObject {
     }
     
     func playKeySound() {
-        guard engine.isRunning else { return }
+        guard engine.isRunning && !isMuted else { return }
         
         let bufferToPlay: AVAudioPCMBuffer?
         switch currentTheme {
