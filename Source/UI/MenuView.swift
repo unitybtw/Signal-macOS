@@ -14,20 +14,12 @@ struct MenuView: View {
             HStack {
                 Image(systemName: "waveform.path.ecg")
                     .font(.title2)
-                    .foregroundColor(hasPermission ? .accentColor : .red)
+                    .foregroundColor(hasPermission && !audioSynthesizer.isMuted ? .accentColor : .gray)
                 Text("Signal")
                     .font(.headline)
                 
                 Spacer()
-                
-                Button(action: {
-                    NSApplication.shared.terminate(nil)
-                }) {
-                    Image(systemName: "power")
-                        .foregroundColor(.gray)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .help("Uygulamayı Kapat")
+                // Quit button removed per user request
             }
             .padding()
             .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
@@ -40,15 +32,15 @@ struct MenuView: View {
                 // İZİN UYARISI
                 if !hasPermission {
                     VStack(alignment: .leading, spacing: 5) {
-                        Label("Erişilebilirlik İzni Gerekli", systemImage: "exclamationmark.triangle.fill")
+                        Label("Accessibility Required", systemImage: "exclamationmark.triangle.fill")
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(.red)
-                        Text("Klavye seslerinin çalışması için Signal'e tuş dinleme izni vermelisiniz.")
+                        Text("Signal needs key logging permission to play sounds.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         
-                        Button("Ayarları Aç") {
+                        Button("Open Settings") {
                             let urlString = "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
                             if let url = URL(string: urlString) {
                                 NSWorkspace.shared.open(url)
@@ -57,7 +49,7 @@ struct MenuView: View {
                         .controlSize(.small)
                         .padding(.top, 4)
                         
-                        Button("İzni Kontrol Et") {
+                        Button("Check Permission") {
                             let newStatus = AXIsProcessTrusted()
                             if newStatus && !hasPermission {
                                 NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
@@ -73,27 +65,31 @@ struct MenuView: View {
                 
                 // Tema Seçici
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Ses Profili")
+                    Text("Audio Profile")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.secondary)
                         .textCase(.uppercase)
                     
-                    Picker("Ses Profili", selection: Binding(
+                    Picker("", selection: Binding(
                         get: { audioSynthesizer.currentTheme },
                         set: { newTheme in audioSynthesizer.setTheme(newTheme) }
                     )) {
-                        Text("Mekanik").tag(AudioTheme.mechanical)
-                        Text("Daktilo").tag(AudioTheme.typewriter)
+                        Text("Mech (Linear)").tag(AudioTheme.mechanical)
+                        Text("Mech (Clicky)").tag(AudioTheme.mechanicalClicky)
+                        Text("Typewriter").tag(AudioTheme.typewriter)
                         Text("Sci-Fi").tag(AudioTheme.scifi)
+                        Text("Arcade").tag(AudioTheme.arcade)
+                        Text("Plop (Water)").tag(AudioTheme.waterDrop)
                     }
-                    .pickerStyle(SegmentedPickerStyle())
+                    // Dropdown for 6 options looks better than segments
+                    .pickerStyle(MenuPickerStyle()) 
                     .labelsHidden()
                 }
                 
                 // Volume
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Ses Seviyesi")
+                        Text("Volume")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.secondary)
                             .textCase(.uppercase)
@@ -117,9 +113,11 @@ struct MenuView: View {
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundColor(.secondary)
                 Spacer()
-                Label(hasPermission ? "Aktif" : "Sessiz", systemImage: "circle.fill")
+                
+                let isReallyActive = hasPermission && !audioSynthesizer.isMuted
+                Label(isReallyActive ? "Active" : "Silenced", systemImage: "circle.fill")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(hasPermission ? .green : .red)
+                    .foregroundColor(isReallyActive ? .green : .red)
             }
             .padding(12)
             .background(Color(NSColor.controlBackgroundColor))

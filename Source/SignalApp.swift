@@ -76,13 +76,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let event = NSApp.currentEvent, event.type == .rightMouseUp {
             let menu = NSMenu()
             
-            let muteItem = NSMenuItem(title: audioSynthesizer.isMuted ? "▶️ Sesleri Aç" : "⏸️ Devre Dışı Bırak", action: #selector(toggleMute), keyEquivalent: "")
+            let muteItem = NSMenuItem(title: audioSynthesizer.isMuted ? "▶️ Unmute Sounds" : "⏸️ Mute Sounds", action: #selector(toggleMute), keyEquivalent: "")
             muteItem.target = self
             menu.addItem(muteItem)
             
             menu.addItem(NSMenuItem.separator())
             
-            let quitItem = NSMenuItem(title: "Signal'den Çık", action: #selector(quitApp), keyEquivalent: "q")
+            let quitItem = NSMenuItem(title: "Quit Signal", action: #selector(quitApp), keyEquivalent: "q")
             quitItem.target = self
             menu.addItem(quitItem)
             
@@ -97,7 +97,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.popover.performClose(sender)
             } else {
                 self.popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: NSRectEdge.minY)
-                self.popover.contentViewController?.view.window?.makeKey()
             }
         }
     }
