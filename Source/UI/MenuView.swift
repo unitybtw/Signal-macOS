@@ -14,6 +14,8 @@ struct MenuView: View {
     @State private var recentKeystrokes: [Date] = []
     @State private var keyHistory: [RecentKey] = []
     @State private var audioPulseActive: Bool = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var isDragging: Bool = false
     
     let pub = NotificationCenter.default.publisher(for: NSNotification.Name("KeyPressNotification"))
 
@@ -121,7 +123,7 @@ struct MenuView: View {
                                     let isSelected = audioSynthesizer.currentTheme == theme
                                     
                                     Button(action: {
-                                        withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8, blendDuration: 0.3)) {
+                                        withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.8, blendDuration: 0.3)) {
                                             audioSynthesizer.setTheme(theme)
                                             proxy.scrollTo(theme, anchor: .center)
                                         }
@@ -149,6 +151,21 @@ struct MenuView: View {
                             }
                             .padding(4)
                             .background(Capsule().fill(Color.primary.opacity(0.06)))
+                            .gesture(
+                                DragGesture(minimumDistance: 10)
+                                    .onChanged { value in
+                                        let themes = AudioTheme.allCases
+                                        // Basit bir x-pozisyon hesabı ile index bulma
+                                        let index = Int(max(0, min(CGFloat(themes.count - 1), value.location.x / 80)))
+                                        let newTheme = themes[index]
+                                        if newTheme != audioSynthesizer.currentTheme {
+                                            withAnimation(.interactiveSpring(response: 0.2, dampingFraction: 0.9)) {
+                                                audioSynthesizer.setTheme(newTheme)
+                                                proxy.scrollTo(newTheme, anchor: .center)
+                                            }
+                                        }
+                                    }
+                            )
                         }
                     }
                 }
