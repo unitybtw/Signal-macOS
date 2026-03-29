@@ -100,7 +100,7 @@ struct MenuView: View {
                     }
                 }
                 
-                // GERÇEK APPLE STYLE LIQUID GLASS (GOOEY/LIQUID EFFECT)
+                // SÜRÜKLENEBİLİR GERÇEK APPLE STYLE LIQUID GLASS
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Audio Profile")
                         .font(.system(size: 9, weight: .bold))
@@ -109,67 +109,63 @@ struct MenuView: View {
                     
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal, showsIndicators: false) {
-                            ZStack {
+                            ZStack(alignment: .leading) {
                                 // Arkaplan Kanalı
                                 Capsule()
                                     .fill(Color.primary.opacity(0.05))
                                     .frame(height: 32)
                                 
-                                // LIQUID/GOOEY GÖSTERGE
-                                Canvas { context, size in
-                                    // Blur ve Threshold ile Sıvı Efekti Oluşturma
-                                    context.addFilter(.alphaThreshold(min: 0.5, color: Color.blue))
-                                    context.addFilter(.blur(radius: 10))
-                                    
-                                    context.drawLayer { ctx in
-                                        for theme in AudioTheme.allCases {
-                                            if theme == audioSynthesizer.currentTheme {
-                                                // Bu kısım animasyonlu capsule çizecek
-                                                // Gerçek implementasyon için matchedGeometry alternatifi bir offset animasyonu kullanacağız
-                                            }
-                                        }
-                                    }
-                                }
-                                .frame(height: 32)
-                                .opacity(0) // Canvas prototip aşamasında, stabil matchedGeometry'ye dönüyoruz ama 'liquid' parametrelerini optimize ederek
-                                
                                 HStack(spacing: 0) {
                                     ForEach(AudioTheme.allCases, id: \.self) { theme in
                                         let isSelected = audioSynthesizer.currentTheme == theme
                                         
-                                        Button(action: {
-                                            withAnimation(.interactiveSpring(response: 0.45, dampingFraction: 0.65, blendDuration: 0.45)) {
-                                                audioSynthesizer.setTheme(theme)
-                                                proxy.scrollTo(theme, anchor: .center)
+                                        Text(theme.displayName)
+                                            .font(.system(size: 11, weight: isSelected ? .bold : .medium))
+                                            .foregroundColor(isSelected ? .white : .primary.opacity(0.6))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 0.4)) {
+                                                    audioSynthesizer.setTheme(theme)
+                                                    proxy.scrollTo(theme, anchor: .center)
+                                                }
                                             }
-                                        }) {
-                                            Text(theme.displayName)
-                                                .font(.system(size: 11, weight: isSelected ? .bold : .medium))
-                                                .foregroundColor(isSelected ? .white : .primary.opacity(0.6))
-                                                .padding(.horizontal, 16)
-                                                .padding(.vertical, 8)
-                                                .background(
-                                                    ZStack {
-                                                        if isSelected {
-                                                            Capsule()
-                                                                .fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
-                                                                .matchedGeometryEffect(id: "liquidSelection", in: selectionNamespace)
-                                                                // Sıvı hissi veren gölge ve parlama
-                                                                .shadow(color: .blue.opacity(0.4), radius: 8, x: 0, y: 2)
-                                                                .overlay(
-                                                                    Capsule()
-                                                                        .stroke(.white.opacity(0.2), lineWidth: 1)
-                                                                )
-                                                        }
+                                            .background(
+                                                ZStack {
+                                                    if isSelected {
+                                                        Capsule()
+                                                            .fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                                                            .matchedGeometryEffect(id: "liquidSelection", in: selectionNamespace)
+                                                            .shadow(color: .blue.opacity(0.4), radius: 8, x: 0, y: 2)
+                                                            .overlay(Capsule().stroke(.white.opacity(0.2), lineWidth: 1))
                                                     }
-                                                )
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                        .id(theme)
+                                                }
+                                            )
+                                            .id(theme)
                                     }
                                 }
                             }
                             .padding(4)
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { value in
+                                        // Sürükleme ile ses seçme mantığı
+                                        let x = value.location.x
+                                        let segmentWidth: CGFloat = 80 // Tahmini genişlik, GeometryReader ile daha kesin yapılabilir
+                                        let index = Int(x / segmentWidth)
+                                        let themes = AudioTheme.allCases
+                                        if index >= 0 && index < themes.count {
+                                            let theme = themes[index]
+                                            if theme != audioSynthesizer.currentTheme {
+                                                withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.8)) {
+                                                    audioSynthesizer.setTheme(theme)
+                                                    proxy.scrollTo(theme, anchor: .center)
+                                                }
+                                            }
+                                        }
+                                    }
+                            )
                         }
                     }
                 }
