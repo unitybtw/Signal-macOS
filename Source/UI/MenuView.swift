@@ -240,7 +240,7 @@ struct MenuView: View {
                 
                 Divider().opacity(0.3)
                 
-                // --- CREDITS SECTION ---
+                // Statik versiyon bilgisi kalsın, credits sağ tıkta
                 HStack {
                     Text("Signal v2.0")
                         .font(.system(size: 8, weight: .bold))
@@ -248,13 +248,24 @@ struct MenuView: View {
                     
                     Spacer()
                     
-                    Text("Built with ❤️ by unitybtw & Antigravity")
-                        .font(.system(size: 8, weight: .medium))
-                        .foregroundColor(.secondary.opacity(0.8))
+                    Text("Right-click for credits")
+                        .font(.system(size: 8))
+                        .foregroundColor(.secondary.opacity(0.5))
                 }
             }
             .padding(12)
             .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+            .contextMenu {
+                Button(action: {
+                    NSWorkspace.shared.open(URL(string: "https://github.com/unitybtw")!)
+                }) {
+                    Text("Developer: Siraç Göktuğ Şimşek")
+                }
+                
+                Divider()
+                
+                Text("Version 2.0.0 (Stable)")
+            }
         }
         .background(
             ZStack {
