@@ -100,51 +100,50 @@ struct MenuView: View {
                     }
                 }
                 
-                // DİKEY PREMİUM SES LİSTESİ
+                // YATAY PREMİUM APPLE SEÇİCİ (LİKİT GERİ DÖNDÜ)
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Audio Profile")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundColor(.secondary)
                         .textCase(.uppercase)
                     
-                    ScrollView(showsIndicators: true) {
-                        VStack(spacing: 4) {
-                            ForEach(AudioTheme.allCases, id: \.self) { theme in
-                                let isSelected = audioSynthesizer.currentTheme == theme
-                                
-                                Button(action: {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                        audioSynthesizer.setTheme(theme)
-                                    }
-                                }) {
-                                    HStack {
+                    ScrollViewReader { proxy in
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 4) {
+                                ForEach(AudioTheme.allCases, id: \.self) { theme in
+                                    let isSelected = audioSynthesizer.currentTheme == theme
+                                    
+                                    Button(action: {
+                                        withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8, blendDuration: 0.3)) {
+                                            audioSynthesizer.setTheme(theme)
+                                            proxy.scrollTo(theme, anchor: .center)
+                                        }
+                                    }) {
                                         Text(theme.displayName)
                                             .font(.system(size: 11, weight: isSelected ? .bold : .medium))
-                                            .foregroundColor(isSelected ? .primary : .secondary)
-                                        
-                                        Spacer()
-                                        
-                                        if isSelected {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(.blue)
-                                                .font(.caption)
-                                                .transition(.scale.combined(with: .opacity))
-                                        }
+                                            .foregroundColor(isSelected ? .white : .primary.opacity(0.8))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                ZStack {
+                                                    if isSelected {
+                                                        Capsule()
+                                                            .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                                            .matchedGeometryEffect(id: "appleSelection", in: selectionNamespace)
+                                                            .shadow(color: .blue.opacity(0.35), radius: 6)
+                                                            .overlay(Capsule().stroke(.white.opacity(0.15), lineWidth: 1))
+                                                    }
+                                                }
+                                            )
                                     }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 10)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .fill(isSelected ? Color.primary.opacity(0.08) : Color.clear)
-                                    )
+                                    .buttonStyle(PlainButtonStyle())
+                                    .id(theme)
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
+                            .padding(4)
+                            .background(Capsule().fill(Color.primary.opacity(0.06)))
                         }
-                        .padding(2)
                     }
-                    .frame(height: 180) // Liste boyutu
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.03)))
                 }
                 
                 // Volume
