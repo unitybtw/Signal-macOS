@@ -209,31 +209,48 @@ struct MenuView: View {
             Divider()
             
             // Alt Bilgi Çubuğu
-            HStack {
-                Label("\(keysPressed)", systemImage: "keyboard")
-                    .font(.system(size: 9, design: .monospaced))
-                
-                Spacer()
-                
-                let wpmCount = Double(recentKeystrokes.count)
-                let wpm = (wpmCount * 12.0) / 5.0
-                Label("\(Int(wpm)) WPM", systemImage: "bolt.fill")
-                    .font(.system(size: 9, weight: .bold, design: .monospaced))
-                    .foregroundColor(wpm >= 100 ? .red : (wpm >= 60 ? .orange : .secondary))
-                    .scaleEffect(audioPulseActive ? 1.1 : 1.0)
-                    .shadow(color: wpm >= 60 ? (wpm >= 100 ? .red : .orange).opacity(0.3) : .clear, radius: 4)
-                
-                Spacer()
-                
-                let isReallyActive = audioSynthesizer.hasPermission && !audioSynthesizer.isMuted
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(isReallyActive ? .green : .red)
-                        .frame(width: 6, height: 6)
-                        .scaleEffect(audioPulseActive ? 1.5 : 1.0) // Tuşa basınca parlar
+            VStack(spacing: 8) {
+                HStack {
+                    Label("\(keysPressed)", systemImage: "keyboard")
+                        .font(.system(size: 9, design: .monospaced))
                     
-                    Text(isReallyActive ? "Active" : "Silenced")
-                        .font(.system(size: 9, weight: .bold))
+                    Spacer()
+                    
+                    let wpmCount = Double(recentKeystrokes.count)
+                    let wpm = (wpmCount * 12.0) / 5.0
+                    Label("\(Int(wpm)) WPM", systemImage: "bolt.fill")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundColor(wpm >= 100 ? .red : (wpm >= 60 ? .orange : .secondary))
+                        .scaleEffect(audioPulseActive ? 1.1 : 1.0)
+                        .shadow(color: wpm >= 60 ? (wpm >= 100 ? .red : .orange).opacity(0.3) : .clear, radius: 4)
+                    
+                    Spacer()
+                    
+                    let isReallyActive = audioSynthesizer.hasPermission && !audioSynthesizer.isMuted
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(isReallyActive ? .green : .red)
+                            .frame(width: 6, height: 6)
+                            .scaleEffect(audioPulseActive ? 1.5 : 1.0)
+                        
+                        Text(isReallyActive ? "Active" : "Silenced")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                }
+                
+                Divider().opacity(0.3)
+                
+                // --- CREDITS SECTION ---
+                HStack {
+                    Text("Signal v2.0")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text("Built with ❤️ by unitybtw & Antigravity")
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundColor(.secondary.opacity(0.8))
                 }
             }
             .padding(12)
