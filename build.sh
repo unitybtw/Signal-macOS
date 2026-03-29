@@ -17,6 +17,9 @@ mkdir -p "$RESOURCES_DIR"
 echo "📝 Info.plist kopyalanıyor..."
 cp Info.plist "$CONTENTS_DIR/"
 
+echo "🖼️ İkon kopyalanıyor..."
+cp Resources/AppIcon.icns "$RESOURCES_DIR/" 2>/dev/null || true
+
 echo "🛠️ Swift kodları derleniyor..."
 # Find all swift source files
 SOURCES=$(find Source -name "*.swift")

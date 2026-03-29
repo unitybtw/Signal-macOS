@@ -28,9 +28,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let contentView = MenuView(audioSynthesizer: audioSynthesizer)
 
         let popover = NSPopover()
-        popover.contentSize = NSSize(width: 320, height: 400)
+        popover.contentSize = NSSize(width: 260, height: 380)
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: contentView)
+        
+        // Siberpunk temasına uyumlu olması için tamamen saydam ve dark denemesi
         popover.appearance = NSAppearance(named: .vibrantDark)
         self.popover = popover
 
@@ -38,13 +40,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = self.statusBarItem.button {
-            // SF Symbol desteği
             if let image = NSImage(systemSymbolName: "waveform.path.ecg", accessibilityDescription: "Signal") {
                 image.isTemplate = true
                 button.image = image
             } else {
-                // macOS versiyonu veya SF Symbol hatası olursa default emoji kullan
-                button.title = "🎛️ Signal"
+                button.title = "🎛️ Signal" // Geri dönüş (Yedek metin)
             }
             button.action = #selector(togglePopover(_:))
             button.target = self
