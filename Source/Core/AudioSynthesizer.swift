@@ -23,6 +23,11 @@ enum AudioTheme: CaseIterable {
     case retroPhone
     case heartBeat
     case spaceSweep
+    case cameraClick
+    case coinCollect
+    case thunderZap
+    case forestWind
+    case deepThud
     
     var displayName: String {
         switch self {
@@ -46,6 +51,11 @@ enum AudioTheme: CaseIterable {
         case .retroPhone: return "Phone"
         case .heartBeat: return "Heart"
         case .spaceSweep: return "Space"
+        case .cameraClick: return "Camera"
+        case .coinCollect: return "Coin"
+        case .thunderZap: return "Zap"
+        case .forestWind: return "Wind"
+        case .deepThud: return "Deep"
         }
     }
 }
@@ -85,6 +95,11 @@ class AudioSynthesizer: ObservableObject {
     private var retroPhoneBuffer: AVAudioPCMBuffer?
     private var heartBeatBuffer: AVAudioPCMBuffer?
     private var spaceSweepBuffer: AVAudioPCMBuffer?
+    private var cameraClickBuffer: AVAudioPCMBuffer?
+    private var coinCollectBuffer: AVAudioPCMBuffer?
+    private var thunderZapBuffer: AVAudioPCMBuffer?
+    private var forestWindBuffer: AVAudioPCMBuffer?
+    private var deepThudBuffer: AVAudioPCMBuffer?
     
     init() {
         setupEngine()
@@ -184,6 +199,11 @@ class AudioSynthesizer: ObservableObject {
         case .retroPhone: bufferToPlay = retroPhoneBuffer
         case .heartBeat: bufferToPlay = heartBeatBuffer
         case .spaceSweep: bufferToPlay = spaceSweepBuffer
+        case .cameraClick: bufferToPlay = cameraClickBuffer
+        case .coinCollect: bufferToPlay = coinCollectBuffer
+        case .thunderZap: bufferToPlay = thunderZapBuffer
+        case .forestWind: bufferToPlay = forestWindBuffer
+        case .deepThud: bufferToPlay = deepThudBuffer
         }
         
         guard let pcmBuffer = bufferToPlay else { return }
@@ -220,6 +240,11 @@ class AudioSynthesizer: ObservableObject {
         self.retroPhoneBuffer = createClickBuffer(format: format, type: .retroPhone)
         self.heartBeatBuffer = createClickBuffer(format: format, type: .heartBeat)
         self.spaceSweepBuffer = createClickBuffer(format: format, type: .spaceSweep)
+        self.cameraClickBuffer = createClickBuffer(format: format, type: .cameraClick)
+        self.coinCollectBuffer = createClickBuffer(format: format, type: .coinCollect)
+        self.thunderZapBuffer = createClickBuffer(format: format, type: .thunderZap)
+        self.forestWindBuffer = createClickBuffer(format: format, type: .forestWind)
+        self.deepThudBuffer = createClickBuffer(format: format, type: .deepThud)
     }
     
     private func loadAudioFile(name: String, format: AVAudioFormat) -> AVAudioPCMBuffer? {
@@ -241,7 +266,7 @@ class AudioSynthesizer: ObservableObject {
         }
     }
     
-    enum SynthType { case mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep }
+    enum SynthType { case mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud }
     
     private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
         let sampleRate = format.sampleRate
@@ -267,6 +292,11 @@ class AudioSynthesizer: ObservableObject {
         case .retroPhone: duration = 0.12
         case .heartBeat: duration = 0.20
         case .spaceSweep: duration = 0.30
+        case .cameraClick: duration = 0.04
+        case .coinCollect: duration = 0.15
+        case .thunderZap: duration = 0.08
+        case .forestWind: duration = 0.20
+        case .deepThud: duration = 0.12
         }
         
         let frameCount = AVAudioFrameCount(sampleRate * duration)
@@ -430,6 +460,35 @@ class AudioSynthesizer: ObservableObject {
                 let sweepFreq = 800.0 * exp(-t * 4.0)
                 let osc = sin(2.0 * .pi * sweepFreq * t)
                 sample = Float(osc) * env * 1.5
+                
+            case .cameraClick:
+                let noise = Float.random(in: -1.0...1.0)
+                let env = Float(exp(-t * 600.0))
+                sample = noise * env * 2.0
+                
+            case .coinCollect:
+                let env = Float(exp(-t * 15.0))
+                let freq = 1200.0 + (t < 0.05 ? 0.0 : 400.0)
+                let osc = sin(2.0 * .pi * freq * t)
+                sample = Float(osc) * env * 0.8
+                
+            case .thunderZap:
+                let noise = Float.random(in: -1.0...1.0)
+                let env = Float(exp(-t * 60.0))
+                let osc = sin(2.0 * .pi * 80.0 * t) // bas distorsiyonu
+                sample = (Float(osc) * 0.5 + noise * 0.5) * env * 2.0
+                
+            case .forestWind:
+                let noise = Float.random(in: -1.0...1.0)
+                let env = Float(sin(.pi * (t / duration)))
+                let freq = 200.0 + 100.0 * sin(2.0 * .pi * 2.0 * t)
+                let osc = sin(2.0 * .pi * freq * t)
+                sample = (Float(osc) * 0.3 + noise * 0.7) * env * 1.0
+                
+            case .deepThud:
+                let env = Float(exp(-t * 10.0))
+                let body = sin(2.0 * .pi * 45.0 * t)
+                sample = Float(body) * env * 2.5
             }
             
             // Satürasyon
