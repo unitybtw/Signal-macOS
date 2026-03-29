@@ -2,6 +2,18 @@ import Cocoa
 import SwiftUI
 
 @main
+struct SignalAppBootstrap {
+    static var delegate: AppDelegate?
+    
+    static func main() {
+        let app = NSApplication.shared
+        app.setActivationPolicy(.accessory) // Uygulamayı Dock'tan gizle ve menüye sabitle
+        self.delegate = AppDelegate()
+        app.delegate = self.delegate
+        app.run()
+    }
+}
+
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     var popover: NSPopover!
@@ -23,10 +35,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.popover = popover
 
         // Menü çubuğu ikonu
-        self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
+        self.statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = self.statusBarItem.button {
-            button.image = NSImage(systemSymbolName: "waveform.path.ecg", accessibilityDescription: "Signal")
+            // SF Symbol desteği
+            if let image = NSImage(systemSymbolName: "waveform.path.ecg", accessibilityDescription: "Signal") {
+                image.isTemplate = true
+                button.image = image
+            } else {
+                // macOS versiyonu veya SF Symbol hatası olursa default emoji kullan
+                button.title = "🎛️ Signal"
+            }
             button.action = #selector(togglePopover(_:))
             button.target = self
         }
