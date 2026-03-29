@@ -8,6 +8,7 @@ struct RecentKey: Identifiable {
 
 struct MenuView: View {
     @ObservedObject var audioSynthesizer: AudioSynthesizer
+    @Namespace private var selectionNamespace
     
     @State private var keysPressed: Int = 0
     @State private var recentKeystrokes: [Date] = []
@@ -42,7 +43,7 @@ struct MenuView: View {
                 
                 // İZİN UYARISI
                 if !audioSynthesizer.hasPermission {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 5) {
                         Text("Accessibility Required")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(.primary)
@@ -65,11 +66,11 @@ struct MenuView: View {
                             .controlSize(.small)
                         }
                     }
-                    .padding(12)
-                    .background(Color.red.opacity(0.1))
-                    .cornerRadius(8)
+                    .padding(10)
+                    .background(Color.red.opacity(0.08))
+                    .cornerRadius(10)
                 } else {
-                    // --- CANLI TUŞ GEÇMİŞİ (BOŞLUĞU DOLDURUR) ---
+                    // --- CANLI TUŞ GEÇMİŞİ ---
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Live History")
                             .font(.system(size: 9, weight: .bold))
@@ -90,7 +91,7 @@ struct MenuView: View {
                                 Text("Type something...")
                                     .font(.system(size: 11))
                                     .italic()
-                                    .foregroundColor(.secondary.opacity(0.5))
+                                    .foregroundColor(Color.secondary.opacity(0.5))
                             }
                             
                             Spacer()
@@ -99,7 +100,7 @@ struct MenuView: View {
                     }
                 }
                 
-                // TEMA SEÇİCİ (LIQUID GLASS STYLE)
+                // GERÇEK APPLE STYLE LIQUID GLASS SEÇİCİ
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Audio Profile")
                         .font(.system(size: 9, weight: .bold))
@@ -108,34 +109,28 @@ struct MenuView: View {
                     
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
+                            HStack(spacing: 4) {
                                 ForEach(AudioTheme.allCases, id: \.self) { theme in
                                     let isSelected = audioSynthesizer.currentTheme == theme
                                     
                                     Button(action: {
-                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                             audioSynthesizer.setTheme(theme)
                                         }
                                     }) {
                                         Text(theme.displayName)
-                                            .font(.system(size: 11, weight: isSelected ? .bold : .medium))
-                                            .foregroundColor(isSelected ? .white : .secondary)
+                                            .font(.system(size: 11, weight: isSelected ? .semibold : .medium))
+                                            .foregroundColor(isSelected ? .primary : .secondary)
                                             .padding(.horizontal, 12)
-                                            .padding(.vertical, 8)
+                                            .padding(.vertical, 6)
                                             .background(
                                                 ZStack {
-                                                    // Liquid Glass Efekti (Light/Dark Adaptif)
                                                     if isSelected {
-                                                        RoundedRectangle(cornerRadius: 8)
-                                                            .fill(LinearGradient(colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                                            .blur(radius: 1)
-                                                        
-                                                        RoundedRectangle(cornerRadius: 8)
-                                                            .stroke(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1.5)
-                                                            .shadow(color: .blue.opacity(0.3), radius: 3)
-                                                    } else {
-                                                        RoundedRectangle(cornerRadius: 8)
-                                                            .fill(Color.primary.opacity(0.04))
+                                                        // Liquid Glass Seçim Göstergesi
+                                                        Capsule()
+                                                            .fill(Color.primary.opacity(0.12))
+                                                            .matchedGeometryEffect(id: "selection", in: selectionNamespace)
+                                                            .shadow(color: Color.black.opacity(0.05), radius: 2)
                                                     }
                                                 }
                                             )
@@ -144,8 +139,11 @@ struct MenuView: View {
                                     .id(theme)
                                 }
                             }
-                            .padding(.horizontal, 2)
-                            .padding(.vertical, 4)
+                            .padding(4)
+                            .background(
+                                Capsule()
+                                    .fill(Color.primary.opacity(0.04))
+                            )
                         }
                         .onChange(of: audioSynthesizer.currentTheme) { newTheme in
                             withAnimation(.spring()) {
