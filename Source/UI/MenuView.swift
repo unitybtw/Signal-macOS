@@ -119,62 +119,75 @@ struct MenuView: View {
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal, showsIndicators: false) {
                             ZStack(alignment: .leading) {
-                                // Arkaplan Kanalı
+                                // ARALIKLI CAM KANAL (Apple Style)
                                 Capsule()
-                                    .fill(Color.primary.opacity(0.06))
-                                    .frame(height: 36)
+                                    .fill(Color.primary.opacity(0.04))
+                                    .frame(height: 38)
+                                    .overlay(Capsule().stroke(Color.primary.opacity(0.05), lineWidth: 0.5))
                                 
-                                // SEÇİM BALONCUĞU (TUTULUP KAYDIRILAN ASIL YAPI)
+                                // LİKİT (GOOEY) KATMANI
                                 let themes = AudioTheme.allCases
-                                let segmentWidth: CGFloat = 100 // Her segment için sabit genişlik
+                                let segmentWidth: CGFloat = 100
                                 
-                                if let currentIndex = themes.firstIndex(of: audioSynthesizer.currentTheme) {
-                                    Capsule()
-                                        .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                        .frame(width: segmentWidth - 8, height: 28)
-                                        .offset(x: isDragging ? dragOffset : CGFloat(currentIndex) * segmentWidth + 4)
-                                        .shadow(color: .blue.opacity(0.4), radius: 8, y: 2)
-                                        .overlay(Capsule().stroke(.white.opacity(0.2), lineWidth: 1))
-                                        .gesture(
-                                            DragGesture()
-                                                .onChanged { value in
-                                                    if !isDragging {
-                                                        isDragging = true
-                                                        dragOffset = CGFloat(currentIndex) * segmentWidth + 4
-                                                    }
-                                                    withAnimation(.interactiveSpring()) {
-                                                        dragOffset = (CGFloat(currentIndex) * segmentWidth + 4) + value.translation.width
-                                                    }
-                                                }
-                                                .onEnded { value in
-                                                    // Hangi segmente en yakın olduğunu bul ve oraya mıknatısla
-                                                    let finalX = dragOffset + value.predictedEndTranslation.width / 2
-                                                    let nearestIndex = Int(round(max(0, finalX) / segmentWidth))
-                                                    let safeIndex = min(themes.count - 1, nearestIndex)
-                                                    
-                                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                                        audioSynthesizer.setTheme(themes[safeIndex])
-                                                        isDragging = false
-                                                        proxy.scrollTo(themes[safeIndex], anchor: .center)
-                                                    }
-                                                }
-                                        )
+                                Canvas { context, size in
+                                    // 1. Gooey/Sıvı Efekti Filtreleri
+                                    context.addFilter(.alphaThreshold(min: 0.5, color: .blue))
+                                    context.addFilter(.blur(radius: 12))
+                                    
+                                    context.drawLayer { ctx in
+                                        if let currentIndex = themes.firstIndex(of: audioSynthesizer.currentTheme) {
+                                            // Asıl Baloncuk
+                                            let targetX = CGFloat(currentIndex) * segmentWidth + (segmentWidth / 2)
+                                            let currentX = isDragging ? dragOffset + (segmentWidth / 2) - 4 : targetX
+                                            
+                                            // Seçim Baloncuğu (Ana Kütle)
+                                            ctx.fill(
+                                                Circle().path(in: CGRect(x: currentX - 16, y: size.height/2 - 16, width: 32, height: 32)),
+                                                with: .color(.blue)
+                                            )
+                                        }
+                                    }
                                 }
+                                .frame(height: 38)
+                                .animation(.interactiveSpring(response: 0.45, dampingFraction: 0.7, blendDuration: 0.45), value: audioSynthesizer.currentTheme)
+                                .animation(.interactiveSpring(response: 0.45, dampingFraction: 0.7, blendDuration: 0.45), value: dragOffset)
                                 
-                                // Yazılar (Tıklanabilir)
+                                // ETKİLEŞİM VE YAZILAR
                                 HStack(spacing: 0) {
                                     ForEach(themes, id: \.self) { theme in
                                         Text(theme.displayName)
-                                            .font(.system(size: 11, weight: audioSynthesizer.currentTheme == theme ? .bold : .medium))
+                                            .font(.system(size: 10, weight: audioSynthesizer.currentTheme == theme ? .bold : .medium))
                                             .foregroundColor(audioSynthesizer.currentTheme == theme ? .white : .primary.opacity(0.7))
-                                            .frame(width: segmentWidth, height: 36)
+                                            .frame(width: segmentWidth, height: 38)
                                             .contentShape(Rectangle())
                                             .onTapGesture {
-                                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                                withAnimation(.interactiveSpring(response: 0.45, dampingFraction: 0.7, blendDuration: 0.45)) {
                                                     audioSynthesizer.setTheme(theme)
                                                     proxy.scrollTo(theme, anchor: .center)
                                                 }
                                             }
+                                            .gesture(
+                                                DragGesture()
+                                                    .onChanged { value in
+                                                        if !isDragging { isDragging = true }
+                                                        if let baseIndex = themes.firstIndex(of: audioSynthesizer.currentTheme) {
+                                                            withAnimation(.interactiveSpring()) {
+                                                                dragOffset = (CGFloat(baseIndex) * segmentWidth + 4) + value.translation.width
+                                                            }
+                                                        }
+                                                    }
+                                                    .onEnded { value in
+                                                        let finalX = dragOffset + value.predictedEndTranslation.width / 2
+                                                        let nearestIndex = Int(round(max(0, finalX) / segmentWidth))
+                                                        let safeIndex = min(themes.count - 1, nearestIndex)
+                                                        
+                                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                                            audioSynthesizer.setTheme(themes[safeIndex])
+                                                            isDragging = false
+                                                            proxy.scrollTo(themes[safeIndex], anchor: .center)
+                                                        }
+                                                    }
+                                            )
                                             .id(theme)
                                     }
                                 }
