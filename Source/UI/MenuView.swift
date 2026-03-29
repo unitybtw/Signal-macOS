@@ -179,13 +179,11 @@ struct MenuView: View {
             .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
         }
         .frame(width: 250)
-        .onReceive(pub) { output in
-            if let event = output.object as? CGEvent {
-                let newKey = RecentKey(char: "•") 
-                withAnimation(.spring()) {
-                    keyHistory.append(newKey)
-                    if keyHistory.count > 5 { keyHistory.removeFirst() }
-                }
+        .onReceive(pub) { _ in
+            let newKey = RecentKey(char: "•") 
+            withAnimation(.spring()) {
+                keyHistory.append(newKey)
+                if keyHistory.count > 5 { keyHistory.removeFirst() }
             }
             
             keysPressed += 1
