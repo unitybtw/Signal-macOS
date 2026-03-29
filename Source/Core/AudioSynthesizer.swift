@@ -95,9 +95,30 @@ class AudioSynthesizer: ObservableObject {
         // Standart format: 44.1kHz, 1 kanal (Mono) The Float32 format
         guard let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false) else { return }
         
-        self.mechanicalBuffer = createClickBuffer(format: format, type: .mechanical)
-        self.typewriterBuffer = createClickBuffer(format: format, type: .typewriter)
-        self.scifiBuffer = createClickBuffer(format: format, type: .scifi)
+        // Önce gerçek .wav dosyalarını okumayı dener. Eğer dosya yoksa/hatalıysa sentetik matematik formülüne düşer.
+        self.mechanicalBuffer = loadAudioFile(name: "mechanical", format: format) ?? createClickBuffer(format: format, type: .mechanical)
+        self.typewriterBuffer = loadAudioFile(name: "typewriter", format: format) ?? createClickBuffer(format: format, type: .typewriter)
+        self.scifiBuffer = loadAudioFile(name: "scifi", format: format) ?? createClickBuffer(format: format, type: .scifi)
+    }
+    
+    private func loadAudioFile(name: String, format: AVAudioFormat) -> AVAudioPCMBuffer? {
+        // macOS bundle içerisindeki Sounds klasörünü oku
+        guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds"),
+              let file = try? AVAudioFile(forReading: url) else {
+            return nil
+        }
+        
+        let frameCount = AVAudioFrameCount(file.length)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+            return nil
+        }
+        
+        do {
+            try file.read(into: buffer)
+            return buffer
+        } catch {
+            return nil
+        }
     }
     
     enum SynthType { case mechanical, typewriter, scifi }
