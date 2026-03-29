@@ -36,9 +36,13 @@ class AudioSynthesizer: ObservableObject {
         engine.attach(playerNode)
         engine.attach(pitchEffect)
         
-        // player -> pitch -> mixer
-        engine.connect(playerNode, to: pitchEffect, format: nil)
-        engine.connect(pitchEffect, to: engine.mainMixerNode, format: nil)
+        // Formatı açıkça belirlemezsek hoparlörün Stereo (2 kanal) formatını alır ve
+        // Mono (1 kanal) buffer yüklemeye çalıştığımızda (scheduleBuffer) uygulama ÇÖKER!
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false)
+        
+        // player -> pitch -> mixer (Zorunlu format ile)
+        engine.connect(playerNode, to: pitchEffect, format: format)
+        engine.connect(pitchEffect, to: engine.mainMixerNode, format: format)
         
         engine.mainMixerNode.outputVolume = volume
     }
