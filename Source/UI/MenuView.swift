@@ -5,6 +5,7 @@ struct MenuView: View {
     @ObservedObject var audioSynthesizer: AudioSynthesizer
     
     @State private var keysPressed: Int = 0
+    @State private var recentKeystrokes: [Date] = []
     @State private var hasPermission: Bool = AXIsProcessTrusted()
     let pub = NotificationCenter.default.publisher(for: NSNotification.Name("KeyPressNotification"))
 
@@ -111,17 +112,24 @@ struct MenuView: View {
             }
             .padding(16)
             
-            // Kırmızı kutu kaybolduğunda arayüzün kendini ekranın ortasına fırlatmasını (merkezlemesini) engeller,
-            // Header'ı her zaman en üste, alt bilgi çubuğunu da her zaman popover'ın en altına yapıştırır.
-            Spacer()
-            
             Divider()
             
             // Alt Bilgi Çubuğu
             HStack {
-                Label("\(keysPressed) strikes", systemImage: "keyboard")
+                // Toplam vuruşlar
+                Label("\(keysPressed)", systemImage: "keyboard")
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundColor(.secondary)
+                    .help("Total strikes")
+                
+                Spacer()
+                
+                // Canlı WPM (Words Per Minute) Hesaplaması
+                let wpm = (Double(recentKeystrokes.count) * 12.0) / 5.0
+                Label("\(Int(wpm)) WPM", systemImage: "bolt.fill")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundColor(wpm > 0 ? .orange : .gray)
+                
                 Spacer()
                 
                 let isReallyActive = hasPermission && !audioSynthesizer.isMuted
@@ -132,9 +140,19 @@ struct MenuView: View {
             .padding(12)
             .background(Color(NSColor.controlBackgroundColor))
         }
-        .frame(width: 260, height: 380) // Popover'ın boyutu ile birebir aynı vererek SwiftUI'ı mükemmel hizalarız
+        .frame(width: 260) // Yükseklik tamamen içerik kadar (Dinamik) olacak! Boşluk kalmayacak.
         .onReceive(pub) { _ in
             keysPressed += 1
+            let now = Date()
+            recentKeystrokes.append(now)
+            
+            // 5 saniyeden eski vuruşları sil (Anlık hız ölçümü için)
+            recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
+        }
+        .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
+            // Zaman geçtiğinde WPM'in sıfırlanması için listeyi güncelle
+            let now = Date()
+            recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
         }
         .onAppear {
             hasPermission = AXIsProcessTrusted()
