@@ -100,73 +100,62 @@ struct MenuView: View {
                     }
                 }
                 
-                // SÜRÜKLENEBİLİR GERÇEK APPLE STYLE LIQUID GLASS
+                // GERÇEK LİKİT (GOOEY) APPLE STYLE SEÇİCİ
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Audio Profile")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundColor(.secondary)
                         .textCase(.uppercase)
                     
-                    ScrollViewReader { proxy in
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            ZStack(alignment: .leading) {
-                                // Arkaplan Kanalı
-                                Capsule()
-                                    .fill(Color.primary.opacity(0.05))
-                                    .frame(height: 32)
-                                
-                                HStack(spacing: 0) {
-                                    ForEach(AudioTheme.allCases, id: \.self) { theme in
-                                        let isSelected = audioSynthesizer.currentTheme == theme
-                                        
-                                        Text(theme.displayName)
-                                            .font(.system(size: 11, weight: isSelected ? .bold : .medium))
-                                            .foregroundColor(isSelected ? .white : .primary.opacity(0.6))
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 8)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 0.4)) {
-                                                    audioSynthesizer.setTheme(theme)
-                                                    proxy.scrollTo(theme, anchor: .center)
-                                                }
-                                            }
-                                            .background(
-                                                ZStack {
-                                                    if isSelected {
-                                                        Capsule()
-                                                            .fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
-                                                            .matchedGeometryEffect(id: "liquidSelection", in: selectionNamespace)
-                                                            .shadow(color: .blue.opacity(0.4), radius: 8, x: 0, y: 2)
-                                                            .overlay(Capsule().stroke(.white.opacity(0.2), lineWidth: 1))
-                                                    }
-                                                }
-                                            )
-                                            .id(theme)
-                                    }
+                    ZStack {
+                        // Arkaplan Kanalı (Cam Doku)
+                        Capsule()
+                            .fill(Color.primary.opacity(0.05))
+                            .frame(height: 36)
+                        
+                        // LİKİT KATMANI (CANVAS)
+                        Canvas { context, size in
+                            // Gooey Efekti Filtreleri
+                            context.addFilter(.alphaThreshold(min: 0.5, color: .blue))
+                            context.addFilter(.blur(radius: 12))
+                            
+                            context.drawLayer { ctx in
+                                // Mevcut Seçim Baloncuğu
+                                let themes = AudioTheme.allCases
+                                if let index = themes.firstIndex(of: audioSynthesizer.currentTheme) {
+                                    let segmentWidth = (size.width - 8) / CGFloat(themes.count)
+                                    let xPos = 4 + (CGFloat(index) * segmentWidth) + (segmentWidth / 2)
+                                    
+                                    // Hareketli Damlacık
+                                    ctx.fill(
+                                        Circle().path(in: CGRect(x: xPos - 14, y: size.height/2 - 14, width: 28, height: 28)),
+                                        with: .color(.blue)
+                                    )
                                 }
                             }
-                            .padding(4)
-                            .gesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onChanged { value in
-                                        // Sürükleme ile ses seçme mantığı
-                                        let x = value.location.x
-                                        let segmentWidth: CGFloat = 80 // Tahmini genişlik, GeometryReader ile daha kesin yapılabilir
-                                        let index = Int(x / segmentWidth)
-                                        let themes = AudioTheme.allCases
-                                        if index >= 0 && index < themes.count {
-                                            let theme = themes[index]
-                                            if theme != audioSynthesizer.currentTheme {
-                                                withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.8)) {
-                                                    audioSynthesizer.setTheme(theme)
-                                                    proxy.scrollTo(theme, anchor: .center)
-                                                }
-                                            }
+                        }
+                        .frame(height: 36)
+                        .animation(.interactiveSpring(response: 0.5, dampingFraction: 0.6, blendDuration: 0.5), value: audioSynthesizer.currentTheme)
+                        
+                        // ETİKETLER VE ETKİLEŞİM
+                        HStack(spacing: 0) {
+                            ForEach(AudioTheme.allCases, id: \.self) { theme in
+                                let isSelected = audioSynthesizer.currentTheme == theme
+                                
+                                Text(theme.displayName)
+                                    .font(.system(size: 10, weight: isSelected ? .bold : .medium))
+                                    .foregroundColor(isSelected ? .white : .primary.opacity(0.6))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 36)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        withAnimation(.interactiveSpring(response: 0.5, dampingFraction: 0.6, blendDuration: 0.5)) {
+                                            audioSynthesizer.setTheme(theme)
                                         }
                                     }
-                            )
+                            }
                         }
+                        .padding(.horizontal, 4)
                     }
                 }
                 
