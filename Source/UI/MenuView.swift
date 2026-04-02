@@ -201,6 +201,13 @@ struct MenuView: View {
                             .foregroundColor(.secondary)
                             .frame(width: 35)
                     }
+                    
+                    Toggle(isOn: $audioSynthesizer.isErrorSoundEnabled) {
+                        Label("System Error Sound", systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: .orange))
+                    .padding(.top, 4)
                 }
                 .padding(.bottom, 6)
             }
@@ -222,7 +229,7 @@ struct MenuView: View {
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundColor(wpm >= 100 ? .red : (wpm >= 60 ? .orange : .secondary))
                         .scaleEffect(audioPulseActive ? 1.1 : 1.0)
-                        .shadow(color: wpm >= 60 ? (wpm >= 100 ? .red : .orange).opacity(0.3) : .clear, radius: 4)
+                        .shadow(color: wpm >= 60 ? (wpm >= 100 ? Color.red : Color.orange).opacity(0.3) : Color.clear, radius: 4)
                     
                     Spacer()
                     

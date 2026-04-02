@@ -73,6 +73,7 @@ enum AudioTheme: CaseIterable {
 class AudioSynthesizer: ObservableObject {
     @Published var currentTheme: AudioTheme = .mechanical
     @Published var isMuted: Bool = false
+    @Published var isErrorSoundEnabled: Bool = true
     @Published var hasPermission: Bool = AXIsProcessTrusted()
     @Published var volume: Float = 0.5 {
         didSet {
@@ -235,6 +236,13 @@ class AudioSynthesizer: ObservableObject {
         if !playerNode.isPlaying {
             playerNode.play()
         }
+    }
+    
+    func playErrorSound() {
+        guard !isMuted && isErrorSoundEnabled else { return }
+        // macOS Varsayılan Hata Sesi (System Alert Sound)
+        // 0x07 (decimal 7) genellikle sistem bip sesidir, ancak kCFSoundID_UserPreferredAlert daha iyidir.
+        AudioServicesPlaySystemSound(kSystemSoundID_UserPreferredAlert)
     }
     
     private func generateSynthBuffers() {
