@@ -21,7 +21,7 @@ struct MenuView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // --- HEADER ---
             HStack {
                 Image(systemName: "waveform.path.ecg")
                     .font(.title3)
@@ -44,90 +44,94 @@ struct MenuView: View {
                         .opacity(audioPulseActive ? 0.5 : 1.0)
                 }
             }
-            .padding(14)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
             .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
-            .transition(.move(edge: .top).combined(with: .opacity))
             
             Divider()
             
-            VStack(alignment: .leading, spacing: 16) {
+            // --- MAIN CONTENT ---
+            VStack(alignment: .leading, spacing: 18) {
                 
-                // İZİN UYARISI (ANIMATED)
-                if !audioSynthesizer.hasPermission {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Accessibility Required")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.primary)
-                        
-                        Text("Allow 'Signal' in Settings.")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                        
-                        HStack {
-                            Button("Settings") {
-                                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
-                            }
-                            .controlSize(.small)
+                // İZİN VEYA TUŞ GEÇMİŞİ AKTİVİTESİ (Sabit Yükseklik)
+                VStack(alignment: .leading, spacing: 0) {
+                    if !audioSynthesizer.hasPermission {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Accessibility Required")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.primary)
                             
-                            Button("Check") {
-                                withAnimation(.spring()) {
-                                    audioSynthesizer.hasPermission = AXIsProcessTrusted()
+                            Text("Please allow 'Signal' in Settings.")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            
+                            HStack {
+                                Button("Settings") {
+                                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
                                 }
+                                .controlSize(.small)
+                                
+                                Button("Check") {
+                                    withAnimation(.spring()) {
+                                        audioSynthesizer.hasPermission = AXIsProcessTrusted()
+                                    }
+                                }
+                                .controlSize(.small)
                             }
-                            .controlSize(.small)
                         }
-                    }
-                    .padding(10)
-                    .background(Color.red.opacity(0.08))
-                    .cornerRadius(10)
-                    .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .move(edge: .trailing).combined(with: .opacity)))
-                } else {
-                    // --- CANLI TUŞ GEÇMİŞİ ---
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Live History")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(.secondary)
-                            .textCase(.uppercase)
-                        
-                        HStack(spacing: 8) {
-                            ForEach(keyHistory) { key in
-                                Text(key.char)
-                                    .font(.system(size: 11, design: .monospaced))
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(RoundedRectangle(cornerRadius: 4).fill(Color.primary.opacity(0.1)))
-                                    .transition(.scale(scale: 0.5, anchor: .center).combined(with: .opacity))
-                            }
+                        .padding(12)
+                        .background(Color.red.opacity(0.08))
+                        .cornerRadius(8)
+                        .transition(.opacity)
+                    } else {
+                        // CANLI TUŞ GEÇMİŞİ
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Live History")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
                             
-                            if keyHistory.isEmpty {
-                                Text("Type something...")
-                                    .font(.system(size: 11))
-                                    .italic()
-                                    .foregroundColor(Color.secondary.opacity(0.5))
+                            HStack(spacing: 6) {
+                                ForEach(keyHistory) { key in
+                                    Text(key.char)
+                                        .font(.system(size: 11, design: .monospaced))
+                                        .frame(width: 20, height: 20)
+                                        .background(RoundedRectangle(cornerRadius: 4).fill(Color.primary.opacity(0.06)))
+                                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.primary.opacity(0.1), lineWidth: 0.5))
+                                        .transition(.scale(scale: 0.8).combined(with: .opacity))
+                                }
+                                
+                                if keyHistory.isEmpty {
+                                    Text("Type something...")
+                                        .font(.system(size: 11))
+                                        .italic()
+                                        .foregroundColor(Color.secondary.opacity(0.5))
+                                }
+                                Spacer()
                             }
-                            
-                            Spacer()
+                            .frame(height: 24)
                         }
-                        .frame(height: 30)
+                        .padding(.vertical, 10) // Eşitleme için
+                        .transition(.opacity)
                     }
-                    .transition(.opacity)
                 }
+                .frame(height: 85, alignment: .top) // POP-OVER YUKSEKLIGINI SABITLER
                 
-                // ANTIGRAVITY SEÇİMİ: PREMİUM PURE GLASS SEÇİCİ (ENHANCED)
-                VStack(alignment: .leading, spacing: 10) {
+                // SES PROFİLİ SEÇİCİ (Native tarzı Segmented sekme stili)
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Audio Profile")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundColor(.secondary)
                         .textCase(.uppercase)
                     
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
+                            HStack(spacing: 6) {
                                 ForEach(AudioTheme.allCases, id: \.self) { theme in
                                     let isSelected = audioSynthesizer.currentTheme == theme
                                     
                                     Button(action: {
-                                        withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8, blendDuration: 0.2)) {
+                                        withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.2)) {
                                             audioSynthesizer.setTheme(theme)
                                             proxy.scrollTo(theme, anchor: .center)
                                         }
@@ -135,22 +139,19 @@ struct MenuView: View {
                                         Text(theme.displayName)
                                             .font(.system(size: 11, weight: isSelected ? .bold : .medium))
                                             .foregroundColor(isSelected ? .primary : .primary.opacity(0.6))
-                                            .padding(.horizontal, 18)
-                                            .padding(.vertical, 8)
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 6)
                                             .background(
                                                 ZStack {
                                                     if isSelected {
-                                                        Capsule()
-                                                            .fill(Color.primary.opacity(0.12)) // Şeffaf koyu/açık cam etkisi
-                                                            .matchedGeometryEffect(id: "pureGlassSelection", in: selectionNamespace)
-                                                            .overlay(
-                                                                Capsule()
-                                                                    .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
-                                                            )
-                                                            .shadow(color: Color.black.opacity(0.05), radius: 4, y: 1)
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color(NSColor.controlBackgroundColor)) // Native segment görünümü
+                                                            .shadow(color: Color.black.opacity(0.08), radius: 2, y: 1)
+                                                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.primary.opacity(0.05), lineWidth: 0.5))
+                                                            .matchedGeometryEffect(id: "segmentSelection", in: selectionNamespace)
                                                     } else {
-                                                        Capsule()
-                                                            .fill(Color.primary.opacity(0.03))
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color.clear)
                                                     }
                                                 }
                                             )
@@ -160,26 +161,27 @@ struct MenuView: View {
                                 }
                             }
                             .padding(4)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.04))) // Arka plan çukuru
                         }
                     }
                 }
                 
-                // Dynamic Audio Pulse Waveform
-                VStack(alignment: .leading, spacing: 10) {
+                // VOLUME & AYARLAR
+                VStack(alignment: .leading, spacing: 14) {
                     HStack {
                         Text("Volume")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.secondary)
                             .textCase(.uppercase)
                         
                         Spacer()
                         
-                        // Audio Pulse Bars
+                        // Audio Pulse
                         HStack(spacing: 2) {
-                            ForEach(0..<5) { index in
+                            ForEach(0..<4) { index in
                                 RoundedRectangle(cornerRadius: 1)
                                     .fill(audioSynthesizer.isMuted ? Color.gray : Color.blue)
-                                    .frame(width: 2, height: audioPulseActive ? CGFloat.random(in: 4...16) : 2)
+                                    .frame(width: 2, height: audioPulseActive ? CGFloat.random(in: 4...12) : 2)
                                     .animation(.spring(response: 0.2, dampingFraction: 0.5), value: audioPulseActive)
                             }
                         }
@@ -199,24 +201,30 @@ struct MenuView: View {
                         Text("\(Int(audioSynthesizer.volume * 100))%")
                             .font(.system(size: 10, design: .monospaced))
                             .foregroundColor(.secondary)
-                            .frame(width: 35)
+                            .frame(width: 32)
+                            .alignmentGuide(.trailing) { d in d[.trailing] }
                     }
                     
-                    Toggle(isOn: $audioSynthesizer.isErrorSoundEnabled) {
-                        Label("System Error Sound", systemImage: "exclamationmark.triangle.fill")
-                            .font(.system(size: 10, weight: .bold))
+                    HStack {
+                        Label("Sys. Error Sound", systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.primary.opacity(0.8))
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $audioSynthesizer.isErrorSoundEnabled)
+                            .toggleStyle(SwitchToggleStyle(tint: .orange))
+                            .labelsHidden()
+                            .controlSize(.small)
                     }
-                    .toggleStyle(SwitchToggleStyle(tint: .orange))
-                    .padding(.top, 4)
                 }
-                .padding(.bottom, 6)
             }
             .padding(16)
             
             Divider()
             
-            // Alt Bilgi Çubuğu
-            VStack(spacing: 8) {
+            // --- FOOTER (ALT BİLGİ VE İSTATİSTİKLER) ---
+            VStack(spacing: 6) {
                 HStack {
                     Label("\(keysPressed)", systemImage: "keyboard")
                         .font(.system(size: 9, design: .monospaced))
@@ -228,8 +236,8 @@ struct MenuView: View {
                     Label("\(Int(wpm)) WPM", systemImage: "bolt.fill")
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundColor(wpm >= 100 ? .red : (wpm >= 60 ? .orange : .secondary))
-                        .scaleEffect(audioPulseActive ? 1.1 : 1.0)
-                        .shadow(color: wpm >= 60 ? (wpm >= 100 ? Color.red : Color.orange).opacity(0.3) : Color.clear, radius: 4)
+                        .scaleEffect(audioPulseActive ? 1.05 : 1.0)
+                        .shadow(color: wpm >= 60 ? (wpm >= 100 ? Color.red : Color.orange).opacity(0.3) : Color.clear, radius: 2)
                     
                     Spacer()
                     
@@ -238,39 +246,38 @@ struct MenuView: View {
                         Circle()
                             .fill(isReallyActive ? .green : .red)
                             .frame(width: 6, height: 6)
-                            .scaleEffect(audioPulseActive ? 1.5 : 1.0)
+                            .scaleEffect(audioPulseActive ? 1.3 : 1.0)
                         
                         Text(isReallyActive ? "Active" : "Silenced")
                             .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.secondary)
                     }
                 }
                 
-                Divider().opacity(0.3)
-                
-                // Statik versiyon bilgisi kalsın, credits sağ tıkta
                 HStack {
                     Text("Signal v2.0")
                         .font(.system(size: 8, weight: .bold))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.secondary.opacity(0.7))
                     
                     Spacer()
                     
                     Text("Right-click for credits")
                         .font(.system(size: 8))
-                        .foregroundColor(.secondary.opacity(0.5))
+                        .foregroundColor(.secondary.opacity(0.4))
                 }
+                .padding(.top, 2)
             }
-            .padding(12)
-            .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
+            // Alt köşelerin popover köşeleriyle uyumlu kesilmesi için saydam / yumuşak bir yapı sağlandı
             .contextMenu {
                 Button(action: {
                     NSWorkspace.shared.open(URL(string: "https://github.com/unitybtw")!)
                 }) {
                     Text("Developer: Siraç Göktuğ Şimşek")
                 }
-                
                 Divider()
-                
                 Text("Version 2.0.0 (Stable)")
             }
         }
@@ -286,7 +293,7 @@ struct MenuView: View {
                 }
             }
         )
-        .frame(width: 250)
+        .frame(width: 260)
         .onReceive(pub) { _ in
             let newKey = RecentKey(char: "•") 
             withAnimation(.spring()) {
