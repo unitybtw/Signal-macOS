@@ -20,6 +20,10 @@ struct MenuView: View {
     let pub = NotificationCenter.default.publisher(for: NSNotification.Name("KeyPressNotification"))
 
     var body: some View {
+        let wpmCount = Double(recentKeystrokes.count)
+        let wpm = (wpmCount * 12.0) / 5.0
+        let accentColor = wpm >= 100 ? Color.red : (wpm >= 60 ? Color.orange : Color.blue)
+
         VStack(spacing: 0) {
             // --- HEADER ---
             HStack {
@@ -52,7 +56,6 @@ struct MenuView: View {
             
             // --- MAIN CONTENT ---
             VStack(alignment: .leading, spacing: 18) {
-                
                 // İZİN VEYA TUŞ GEÇMİŞİ AKTİVİTESİ (Sabit Yükseklik)
                 VStack(alignment: .leading, spacing: 0) {
                     if !audioSynthesizer.hasPermission {
@@ -84,7 +87,6 @@ struct MenuView: View {
                         .cornerRadius(8)
                         .transition(.opacity)
                     } else {
-                        // CANLI TUŞ GEÇMİŞİ
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Live History")
                                 .font(.system(size: 10, weight: .bold))
@@ -111,13 +113,13 @@ struct MenuView: View {
                             }
                             .frame(height: 24)
                         }
-                        .padding(.vertical, 10) // Eşitleme için
+                        .padding(.vertical, 10)
                         .transition(.opacity)
                     }
                 }
-                .frame(height: 85, alignment: .top) // POP-OVER YUKSEKLIGINI SABITLER
+                .frame(height: 85, alignment: .top)
                 
-                // SES PROFİLİ SEÇİCİ (Native tarzı Segmented sekme stili)
+                // SES PROFİLİ SEÇİCİ
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Audio Profile")
                         .font(.system(size: 10, weight: .bold))
@@ -129,7 +131,6 @@ struct MenuView: View {
                             HStack(spacing: 6) {
                                 ForEach(AudioTheme.allCases, id: \.self) { theme in
                                     let isSelected = audioSynthesizer.currentTheme == theme
-                                    
                                     Button(action: {
                                         withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.2)) {
                                             audioSynthesizer.setTheme(theme)
@@ -145,7 +146,7 @@ struct MenuView: View {
                                                 ZStack {
                                                     if isSelected {
                                                         RoundedRectangle(cornerRadius: 6)
-                                                            .fill(Color(NSColor.controlBackgroundColor)) // Native segment görünümü
+                                                            .fill(Color(NSColor.controlBackgroundColor))
                                                             .shadow(color: Color.black.opacity(0.08), radius: 2, y: 1)
                                                             .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.primary.opacity(0.05), lineWidth: 0.5))
                                                             .matchedGeometryEffect(id: "segmentSelection", in: selectionNamespace)
@@ -161,7 +162,7 @@ struct MenuView: View {
                                 }
                             }
                             .padding(4)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.04))) // Arka plan çukuru
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.04)))
                         }
                     }
                 }
@@ -176,7 +177,6 @@ struct MenuView: View {
                         
                         Spacer()
                         
-                        // Audio Pulse
                         HStack(spacing: 2) {
                             ForEach(0..<4) { index in
                                 RoundedRectangle(cornerRadius: 1)
@@ -202,7 +202,6 @@ struct MenuView: View {
                             .font(.system(size: 10, design: .monospaced))
                             .foregroundColor(.secondary)
                             .frame(width: 32)
-                            .alignmentGuide(.trailing) { d in d[.trailing] }
                     }
                     
                     HStack {
@@ -223,7 +222,7 @@ struct MenuView: View {
             
             Divider()
             
-            // --- FOOTER (ALT BİLGİ VE İSTATİSTİKLER) ---
+            // --- FOOTER ---
             VStack(spacing: 6) {
                 HStack {
                     Label("\(keysPressed)", systemImage: "keyboard")
@@ -231,8 +230,6 @@ struct MenuView: View {
                     
                     Spacer()
                     
-                    let wpmCount = Double(recentKeystrokes.count)
-                    let wpm = (wpmCount * 12.0) / 5.0
                     Label("\(Int(wpm)) WPM", systemImage: "bolt.fill")
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundColor(wpm >= 100 ? .red : (wpm >= 60 ? .orange : .secondary))
@@ -270,7 +267,6 @@ struct MenuView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
-            // Alt köşelerin popover köşeleriyle uyumlu kesilmesi için saydam / yumuşak bir yapı sağlandı
             .contextMenu {
                 Button(action: {
                     NSWorkspace.shared.open(URL(string: "https://github.com/unitybtw")!)
@@ -283,16 +279,16 @@ struct MenuView: View {
         }
         .background(
             ZStack {
-                // Dinamik Arkaplan Işığı (Mesh-like)
-                if audioPulseActive {
-                    Circle()
-                        .fill(Color.accentColor.opacity(0.05))
-                        .blur(radius: 40)
-                        .offset(x: CGFloat.random(in: -50...50), y: CGFloat.random(in: -50...50))
-                        .transition(.opacity)
-                }
+                Circle()
+                    .fill(accentColor.opacity(audioPulseActive ? (wpm / 150.0 + 0.05) : 0.02))
+                    .blur(radius: audioPulseActive ? 50 : 70)
+                    .frame(width: 200, height: 200)
+                    .offset(x: audioPulseActive ? CGFloat.random(in: -30...30) : 0, 
+                            y: audioPulseActive ? CGFloat.random(in: -30...30) : 0)
+                    .animation(.easeInOut(duration: 0.5), value: audioPulseActive)
             }
         )
+        .background(VisualEffectView(material: .popover, blendingMode: .withinWindow))
         .frame(width: 260)
         .onReceive(pub) { _ in
             let newKey = RecentKey(char: "•") 
@@ -301,7 +297,6 @@ struct MenuView: View {
                 if keyHistory.count > 5 { keyHistory.removeFirst() }
             }
             
-            // Pulse Effect
             audioPulseActive = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 audioPulseActive = false
@@ -310,7 +305,6 @@ struct MenuView: View {
             keysPressed += 1
             let now = Date()
             recentKeystrokes.append(now)
-            
             recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
         }
         .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
