@@ -34,7 +34,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         popover.delegate = self
         let hostingController = NSHostingController(rootView: contentView)
         // Pencerenin boyut değişimlerinde menü barından kopmasını önler
-        hostingController.sizingOptions = [] 
+        if #available(macOS 13.0, *) {
+            hostingController.sizingOptions = [] 
+        }
         popover.contentViewController = hostingController
         
         // Sistemin açık/koyu modunu otomatik takip etmesi için özel görünümü kaldırıyoruz
