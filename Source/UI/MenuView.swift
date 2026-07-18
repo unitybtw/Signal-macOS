@@ -94,37 +94,71 @@ struct MenuView: View {
                         .cornerRadius(8)
                         .transition(.opacity)
                     } else {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Live History")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.secondary)
-                                .textCase(.uppercase)
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Live History")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                    .textCase(.uppercase)
+                                
+                                Spacer()
+                                
+                                let wpmCount = Double(recentKeystrokes.count)
+                                let currentWpm = (wpmCount * 12.0) / 5.0
+                                if currentWpm > 0 {
+                                    Text("\(Int(currentWpm)) WPM")
+                                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                        .foregroundColor(currentWpm >= 100 ? .red : (currentWpm >= 60 ? .orange : .blue))
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background((currentWpm >= 100 ? Color.red : (currentWpm >= 60 ? Color.orange : Color.blue)).opacity(0.1))
+                                        .cornerRadius(4)
+                                        .transition(.scale.combined(with: .opacity))
+                                }
+                            }
                             
-                            HStack(spacing: 6) {
+                            HStack(spacing: 8) {
                                 ForEach(keyHistory) { key in
                                     Text(key.char)
-                                        .font(.system(size: 11, design: .monospaced))
-                                        .frame(width: 20, height: 20)
-                                        .background(RoundedRectangle(cornerRadius: 4).fill(Color.primary.opacity(0.06)))
-                                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.primary.opacity(0.1), lineWidth: 0.5))
+                                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                        .frame(width: 30, height: 32)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .fill(Color(NSColor.controlBackgroundColor))
+                                                .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                                        )
                                         .transition(.scale(scale: 0.8).combined(with: .opacity))
                                 }
                                 
                                 if keyHistory.isEmpty {
-                                    Text("Type something...")
-                                        .font(.system(size: 11))
-                                        .italic()
-                                        .foregroundColor(Color.secondary.opacity(0.5))
+                                    HStack {
+                                        Image(systemName: "keyboard")
+                                            .opacity(0.5)
+                                        Text("Start typing...")
+                                    }
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color.secondary.opacity(0.6))
                                 }
                                 Spacer()
                             }
-                            .frame(height: 24)
+                            .frame(height: 36)
                         }
-                        .padding(.vertical, 10)
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.primary.opacity(0.03))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                        )
                         .transition(.opacity)
                     }
                 }
-                .frame(minHeight: 85, alignment: .top)
                 
                 // SES PROFİLİ SEÇİCİ
                 VStack(alignment: .leading, spacing: 8) {
