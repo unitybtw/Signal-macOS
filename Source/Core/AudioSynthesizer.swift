@@ -87,6 +87,7 @@ class AudioSynthesizer: ObservableObject {
     struct SynthChannel {
         let player: AVAudioPlayerNode
         let pitch: AVAudioUnitTimePitch
+        let mixer: AVAudioMixerNode
     }
     
     private let channelCount = 10
@@ -173,21 +174,25 @@ class AudioSynthesizer: ObservableObject {
     }
     
     private func setupEngine() {
-        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false)
+        let monoFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false)
+        let stereoFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 2, interleaved: false)
         
         for _ in 0..<channelCount {
             let player = AVAudioPlayerNode()
             let pitch = AVAudioUnitTimePitch()
+            let mixer = AVAudioMixerNode()
             
             engine.attach(player)
             engine.attach(pitch)
+            engine.attach(mixer)
             
-            if let fmt = format {
-                engine.connect(player, to: pitch, format: fmt)
-                engine.connect(pitch, to: engine.mainMixerNode, format: nil)
+            if let mono = monoFormat, let stereo = stereoFormat {
+                engine.connect(player, to: pitch, format: mono)
+                engine.connect(pitch, to: mixer, format: mono)
+                engine.connect(mixer, to: engine.mainMixerNode, format: stereo)
             }
             
-            channels.append(SynthChannel(player: player, pitch: pitch))
+            channels.append(SynthChannel(player: player, pitch: pitch, mixer: mixer))
         }
         
         engine.mainMixerNode.outputVolume = volume
@@ -301,7 +306,7 @@ class AudioSynthesizer: ObservableObject {
             channel.pitch.pitch = basePitch
         }
         
-        channel.player.pan = panValue
+        channel.mixer.pan = panValue
         channel.player.volume = volumeModifier
         
         channel.player.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
