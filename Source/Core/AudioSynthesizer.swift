@@ -103,6 +103,7 @@ class AudioSynthesizer: ObservableObject {
     private let channelCount = 10
     private var channels: [SynthChannel] = []
     private var currentChannelIndex = 0
+    private var recentKeyTimestamps: [Date] = []
 
     // Synth Buffers
     private var cherryMXBlueBuffer: AVAudioPCMBuffer?
@@ -310,6 +311,20 @@ class AudioSynthesizer: ObservableObject {
         if !isDown {
             basePitch += 600 // higher pitch for key return (clack)
             volumeModifier *= 0.3 // softer return
+        }
+        
+        // "Flow State" Momentum Acoustics
+        // As you type faster, the sound becomes slightly louder and sharper (crisper)
+        if isDown {
+            let now = Date()
+            recentKeyTimestamps.append(now)
+            recentKeyTimestamps.removeAll { now.timeIntervalSince($0) > 2.0 }
+            
+            let wpmApprox = Double(recentKeyTimestamps.count) * 30.0 / 5.0
+            let momentum = min(wpmApprox / 120.0, 1.0) // 0.0 at 0 WPM, 1.0 at 120+ WPM
+            
+            volumeModifier *= Float(1.0 + (momentum * 0.2)) // Up to 20% volume boost
+            basePitch += Float(momentum * 150.0) // Up to +150 cents pitch shift
         }
         
         // Spatial Audio / Panning based on Key Code position
