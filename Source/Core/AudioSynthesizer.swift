@@ -122,20 +122,23 @@ class AudioSynthesizer: ObservableObject {
         setupEngine()
         generateSynthBuffers()
         
-        // Periyodik izin kontrolü (Kullanıcı ayarlardan açarsa anında algılamak için)
         Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            let status = AXIsProcessTrusted()
-            if status != self?.hasPermission {
-                self?.hasPermission = status
-                if status {
-                    NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
-                }
-            }
+            self?.checkPermission()
         }
         
         // --- Uygulama Açılış Sesi ---
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.playStartupSound()
+        }
+    }
+    
+    func checkPermission() {
+        let status = AXIsProcessTrusted()
+        if status != self.hasPermission {
+            self.hasPermission = status
+            if status {
+                NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
+            }
         }
     }
     

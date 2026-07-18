@@ -33,7 +33,7 @@ class EventTapMonitor {
                     }
                 }
                 // Event'i sisteme ve diğer uygulamalara olduğu gibi geçir
-                return Unmanaged.passRetained(event)
+                return Unmanaged.passUnretained(event)
             },
             userInfo: Unmanaged.passUnretained(self).toOpaque()
         )
@@ -54,6 +54,12 @@ class EventTapMonitor {
     func stop() {
         if let port = eventPort {
             CGEvent.tapEnable(tap: port, enable: false)
+            if let source = runLoopSource {
+                CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+            }
+            CFMachPortInvalidate(port)
+            eventPort = nil
+            runLoopSource = nil
         }
     }
 }

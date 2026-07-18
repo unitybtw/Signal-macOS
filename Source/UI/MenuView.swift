@@ -83,7 +83,7 @@ struct MenuView: View {
                                 
                                 Button("Check") {
                                     withAnimation(.spring()) {
-                                        audioSynthesizer.hasPermission = AXIsProcessTrusted()
+                                        audioSynthesizer.checkPermission()
                                     }
                                 }
                                 .controlSize(.small)
