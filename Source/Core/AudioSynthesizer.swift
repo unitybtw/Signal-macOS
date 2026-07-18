@@ -115,6 +115,7 @@ class AudioSynthesizer: ObservableObject {
     // Dedicated Modifiers
     private var mechanicalSpacebarBuffer: AVAudioPCMBuffer?
     private var mechanicalEnterBuffer: AVAudioPCMBuffer?
+    private var mechanicalKeyUpBuffer: AVAudioPCMBuffer?
     
     private var mechanicalBuffer: AVAudioPCMBuffer?
     private var mechanicalClickyBuffer: AVAudioPCMBuffer?
@@ -309,7 +310,11 @@ class AudioSynthesizer: ObservableObject {
         
         // Up/Down modification
         if !isDown {
-            basePitch += 600 // higher pitch for key return (clack)
+            if currentTheme == .mechanical || currentTheme == .cherryMXRed || currentTheme == .cherryMXBrown || currentTheme == .topre || currentTheme == .holyPanda || currentTheme == .cherryMXBlue {
+                bufferToPlay = mechanicalKeyUpBuffer
+            } else {
+                basePitch += 600 // higher pitch for key return (clack)
+            }
             volumeModifier *= 0.3 // softer return
         }
         
@@ -379,6 +384,7 @@ class AudioSynthesizer: ObservableObject {
         
         self.mechanicalSpacebarBuffer = createClickBuffer(format: format, type: .mechanicalSpacebar)
         self.mechanicalEnterBuffer = createClickBuffer(format: format, type: .mechanicalEnter)
+        self.mechanicalKeyUpBuffer = createClickBuffer(format: format, type: .mechanicalKeyUp)
         
         self.mechanicalBuffer = loadAudioFile(name: "mechanical", format: format) ?? createClickBuffer(format: format, type: .mechanical)
         self.mechanicalClickyBuffer = createClickBuffer(format: format, type: .mechanicalClicky)
@@ -431,7 +437,7 @@ class AudioSynthesizer: ObservableObject {
         }
     }
     
-    enum SynthType { case cherryMXBlue, cherryMXBrown, cherryMXRed, topre, holyPanda, mechanicalSpacebar, mechanicalEnter, mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
+    enum SynthType { case cherryMXBlue, cherryMXBrown, cherryMXRed, topre, holyPanda, mechanicalSpacebar, mechanicalEnter, mechanicalKeyUp, mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
     
     private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
         let sampleRate = format.sampleRate
@@ -444,6 +450,7 @@ class AudioSynthesizer: ObservableObject {
         case .holyPanda: duration = 0.05
         case .mechanicalSpacebar: duration = 0.1
         case .mechanicalEnter: duration = 0.08
+        case .mechanicalKeyUp: duration = 0.03
         case .mechanical: duration = 0.04
         case .mechanicalClicky: duration = 0.04
         case .typewriter: duration = 0.08
@@ -535,6 +542,12 @@ class AudioSynthesizer: ObservableObject {
                 let clack = (Float(sin(2.0 * .pi * 800.0 * t)) * 0.5 + noise * 0.4) * attackEnv
                 let metallicRing = Float(sin(2.0 * .pi * 2200.0 * t)) * Float(exp(-t * 40.0)) * 0.1
                 sample = (thock * 1.2 + clack * 1.0 + metallicRing) * 1.4
+            case .mechanicalKeyUp:
+                let env = Float(exp(-t * 300.0))
+                let noise = Float.random(in: -1.0...1.0) * 0.2
+                let clack = Float(sin(2.0 * .pi * 1800.0 * t)) * env
+                let spring = Float(sin(2.0 * .pi * 3000.0 * t)) * Float(exp(-t * 100.0)) * 0.1
+                sample = (clack + noise + spring) * 0.5
             case .mechanical:
                 // Sentetik geri dönüş thock
                 let noise = Float.random(in: -1.0...1.0)
