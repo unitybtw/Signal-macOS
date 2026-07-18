@@ -34,6 +34,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         popover.delegate = self
         let hostingController = NSHostingController(rootView: contentView)
         popover.contentViewController = hostingController
+        popover.contentSize = NSSize(width: 260, height: 440)
         
         // Sistemin açık/koyu modunu otomatik takip etmesi için özel görünümü kaldırıyoruz
         popover.appearance = nil
