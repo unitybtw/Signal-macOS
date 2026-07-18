@@ -61,20 +61,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         
         // Dinleyiciye basma olayı gelince sentezleyiciye aktar
         keyEventMonitor.onKeyEvent = { [weak self] event, isDown in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
+            guard let self = self else { return }
+            let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+            
+            // OPTİMİZASYON: Ses sentezini Main Thread dışına alarak SIFIR GECİKME (Zero-latency) sağla
+            self.audioSynthesizer.playKeySound(keyCode: keyCode, isDown: isDown)
+            
+            // Sadece tuşa basıldığında (down) hata seslerini çal ve arayüzü güncelle
+            if isDown {
+                if keyCode == 53 { // 53 = ESC key
+                    self.audioSynthesizer.playErrorSound()
+                }
                 
-                let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-                
-                // Normal tuş sesini çal (Hangi tuşa basıldığını ve basılıp bırakıldığını bilerek)
-                self.audioSynthesizer.playKeySound(keyCode: keyCode, isDown: isDown)
-                
-                // Sadece tuşa basıldığında (down) arayüzü güncelle ve hata seslerini çal
-                if isDown {
-                    if keyCode == 53 { // 53 = ESC key
-                        self.audioSynthesizer.playErrorSound()
-                    }
-                    
+                // Arayüz güncellemelerini Main Thread'de yap
+                DispatchQueue.main.async {
                     NotificationCenter.default.post(name: NSNotification.Name("KeyPressNotification"), object: event)
                 }
             }

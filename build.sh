@@ -32,6 +32,7 @@ swiftc -g -Onone \
 
 echo "🔐 Uygulama Kod İmzası (Code Sign) oluşturuluyor..."
 xattr -cr "$APP_DIR"
+xattr -cr Signal.app
 codesign -s "-" --force --deep "$APP_DIR"
 
 echo "✅ Derleme başarılı! Uygulama '$APP_DIR' olarak hazırlandı."
