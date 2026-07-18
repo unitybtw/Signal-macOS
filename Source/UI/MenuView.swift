@@ -249,6 +249,19 @@ struct MenuView: View {
                                 }
                             }
                     }
+                    
+                    HStack {
+                        Label("Organic Pitch", systemImage: "waveform.path")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.primary.opacity(0.8))
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $audioSynthesizer.isOrganicPitchEnabled)
+                            .toggleStyle(SwitchToggleStyle(tint: .purple))
+                            .labelsHidden()
+                            .controlSize(.small)
+                    }
                 }
             }
             .padding(16)

@@ -74,6 +74,7 @@ class AudioSynthesizer: ObservableObject {
     @Published var currentTheme: AudioTheme = .mechanical
     @Published var isMuted: Bool = false
     @Published var isErrorSoundEnabled: Bool = true
+    @Published var isOrganicPitchEnabled: Bool = true
     @Published var hasPermission: Bool = AXIsProcessTrusted()
     @Published var volume: Float = 0.5 {
         didSet {
@@ -229,7 +230,11 @@ class AudioSynthesizer: ObservableObject {
         
         guard let pcmBuffer = bufferToPlay else { return }
         
-        pitchEffect.pitch = Float.random(in: -100...100)
+        if isOrganicPitchEnabled {
+            pitchEffect.pitch = Float.random(in: -100...100)
+        } else {
+            pitchEffect.pitch = 0
+        }
         
         playerNode.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
         
