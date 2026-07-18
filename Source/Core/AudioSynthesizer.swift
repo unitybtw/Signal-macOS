@@ -194,7 +194,7 @@ class AudioSynthesizer: ObservableObject {
         playKeySound()
     }
     
-    func playKeySound() {
+    func playKeySound(keyCode: Int64 = 0) {
         guard engine.isRunning && !isMuted else { return }
         
         let bufferToPlay: AVAudioPCMBuffer?
@@ -233,11 +233,37 @@ class AudioSynthesizer: ObservableObject {
         
         guard let pcmBuffer = bufferToPlay else { return }
         
-        if isOrganicPitchEnabled {
-            pitchEffect.pitch = Float.random(in: -100...100)
-        } else {
-            pitchEffect.pitch = 0
+        // Base Pitch Modification
+        var basePitch: Float = 0
+        var volumeModifier: Float = 1.0
+        
+        // Special Keys (Space, Return, Backspace) sound deeper or louder
+        switch keyCode {
+        case 49: // Space
+            basePitch = -300
+            volumeModifier = 1.2
+        case 36: // Return
+            basePitch = -150
+            volumeModifier = 1.15
+        case 51: // Backspace
+            basePitch = 150
+            volumeModifier = 0.9
+        case 48: // Tab
+            basePitch = 200
+        case 53: // Esc
+            basePitch = -400
+        default:
+            break
         }
+        
+        if isOrganicPitchEnabled {
+            pitchEffect.pitch = basePitch + Float.random(in: -80...80)
+        } else {
+            pitchEffect.pitch = basePitch
+        }
+        
+        // Apply Volume Modifier if engine supports it. (We can't easily change individual hit volume without a separate player node per hit or AVAudioMixerNode per sound). 
+        // For now, we rely on the pitch change which already gives a strong acoustic difference!
         
         playerNode.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
         

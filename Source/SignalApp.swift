@@ -64,13 +64,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 
-                // Normal tuş sesini çal
-                self.audioSynthesizer.playKeySound()
+                let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+                
+                // Normal tuş sesini çal (Hangi tuşa basıldığını bilerek)
+                self.audioSynthesizer.playKeySound(keyCode: keyCode)
                 
                 // macOS'te yanlış tuşa basıldığında sistemin bip sesi çıkarmasını tetikleyen durumları simüle edelim.
-                // Eğer CMD/Option gibi modifier'lar basılıysa ve tuş bir hataya yol açıyorsa playErrorSound çağrılabilir.
-                // Şimdilik sadece ESC veya belirli 'hata' tuşları için bu özelliği ekleyelim (örnek amaçlı).
-                let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
                 if keyCode == 53 { // 53 = ESC key
                     self.audioSynthesizer.playErrorSound()
                 }
