@@ -83,6 +83,8 @@ enum AudioTheme: CaseIterable {
 class AudioSynthesizer: ObservableObject {
     @Published var currentTheme: AudioTheme = .mechanical
     @Published var isMuted: Bool = false
+    @Published var isSmartMuteEnabled: Bool = false
+    @Published var isSmartMutedActive: Bool = false
     @Published var isMouseSoundEnabled: Bool = false
     @Published var isErrorSoundEnabled: Bool = true
     @Published var isOrganicPitchEnabled: Bool = true
@@ -238,6 +240,7 @@ class AudioSynthesizer: ObservableObject {
     
     func playMouseSound(isLeft: Bool) {
         guard engine.isRunning && !isMuted && isMouseSoundEnabled else { return }
+        if isSmartMuteEnabled && isSmartMutedActive { return }
         
         var bufferToPlay: AVAudioPCMBuffer?
         switch currentTheme {
@@ -296,6 +299,7 @@ class AudioSynthesizer: ObservableObject {
     
     func playKeySound(keyCode: Int64 = 0, isDown: Bool = true) {
         guard engine.isRunning && !isMuted else { return }
+        if isSmartMuteEnabled && isSmartMutedActive { return }
         
         var bufferToPlay: AVAudioPCMBuffer?
         switch currentTheme {

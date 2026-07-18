@@ -99,6 +99,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             return nil
         }
         
+        // SMART AUTO-MUTE: Toplantı veya Medya uygulamaları açıldığında otomatik sessize al
+        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] notification in
+            guard let self = self, let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
+            
+            let blacklistedBundleIDs = [
+                "us.zoom.xos", "com.microsoft.teams", "com.microsoft.teams2",
+                "com.apple.FaceTime", "com.cisco.webexmeetingsapp", "com.skype.skype",
+                "com.apple.QuickTimePlayerX", "com.colliderli.iina", "org.videolan.vlc"
+            ]
+            
+            if let bundleID = app.bundleIdentifier, blacklistedBundleIDs.contains(bundleID) {
+                self.audioSynthesizer.isSmartMutedActive = true
+            } else {
+                self.audioSynthesizer.isSmartMutedActive = false
+            }
+        }
+        
         // DIŞARI TIKLANDIĞINDA KAPATMA MONİTÖRÜ
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             if let self = self, self.popover.isShown {

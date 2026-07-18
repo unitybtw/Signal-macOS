@@ -270,6 +270,18 @@ struct MenuView: View {
                             .labelsHidden()
                             .controlSize(.small)
                     }
+                    HStack {
+                        Label("Smart Mute", systemImage: "mic.slash.fill")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.primary.opacity(0.8))
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $audioSynthesizer.isSmartMuteEnabled)
+                            .toggleStyle(SwitchToggleStyle(tint: .red))
+                            .labelsHidden()
+                            .controlSize(.small)
+                    }
                     
                     HStack {
                         Label("Start at Login", systemImage: "macwindow.badge.plus")
@@ -331,16 +343,18 @@ struct MenuView: View {
                     
                     Spacer()
                     
-                    let isReallyActive = audioSynthesizer.hasPermission && !audioSynthesizer.isMuted
+                    let isReallyActive = audioSynthesizer.hasPermission && !audioSynthesizer.isMuted && !(audioSynthesizer.isSmartMuteEnabled && audioSynthesizer.isSmartMutedActive)
+                    let isSmartMuted = audioSynthesizer.isSmartMuteEnabled && audioSynthesizer.isSmartMutedActive
+                    
                     HStack(spacing: 4) {
                         Circle()
-                            .fill(isReallyActive ? .green : .red)
+                            .fill(isReallyActive ? .green : (isSmartMuted ? .orange : .red))
                             .frame(width: 6, height: 6)
                             .scaleEffect(audioPulseActive ? 1.3 : 1.0)
                         
-                        Text(isReallyActive ? "Active" : "Silenced")
+                        Text(isReallyActive ? "Active" : (isSmartMuted ? "Smart Muted" : "Silenced"))
                             .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(isSmartMuted ? .orange : .secondary)
                     }
                 }
                 
