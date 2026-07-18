@@ -1,5 +1,8 @@
 # 🔊 Signal - macOS Keystroke Audio Feedback
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+
 Signal is a premium, high-performance macOS menu bar application that provides real-time audio feedback for every keystroke. Inspired by mechanical keyboards and premium UI aesthetics, Signal transforms your typing experience into an immersive auditory journey.
 
 ![Signal App Banner](https://raw.githubusercontent.com/unitybtw/Signal-macOS/main/Resources/AppIcon.png)
@@ -49,6 +52,19 @@ Our current library includes:
 - **Swift & SwiftUI:** Native macOS interface components.
 - **Core Audio:** High-fidelity, low-latency sound engine.
 - **AppKit:** Seamless menu bar integration.
+
+## 🤝 Contributing
+
+We welcome contributions from the community! Whether it's adding new audio profiles, fixing bugs, or improving performance, your help is appreciated. 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 Created with ❤️ by [unitybtw](https://github.com/unitybtw)
