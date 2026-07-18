@@ -60,21 +60,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         audioSynthesizer.start()
         
         // Dinleyiciye basma olayı gelince sentezleyiciye aktar
-        keyEventMonitor.onKeyDown = { [weak self] event in
+        keyEventMonitor.onKeyEvent = { [weak self] event, isDown in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 
                 let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
                 
-                // Normal tuş sesini çal (Hangi tuşa basıldığını bilerek)
-                self.audioSynthesizer.playKeySound(keyCode: keyCode)
+                // Normal tuş sesini çal (Hangi tuşa basıldığını ve basılıp bırakıldığını bilerek)
+                self.audioSynthesizer.playKeySound(keyCode: keyCode, isDown: isDown)
                 
-                // macOS'te yanlış tuşa basıldığında sistemin bip sesi çıkarmasını tetikleyen durumları simüle edelim.
-                if keyCode == 53 { // 53 = ESC key
-                    self.audioSynthesizer.playErrorSound()
+                // Sadece tuşa basıldığında (down) arayüzü güncelle ve hata seslerini çal
+                if isDown {
+                    if keyCode == 53 { // 53 = ESC key
+                        self.audioSynthesizer.playErrorSound()
+                    }
+                    
+                    NotificationCenter.default.post(name: NSNotification.Name("KeyPressNotification"), object: event)
                 }
-                
-                NotificationCenter.default.post(name: NSNotification.Name("KeyPressNotification"), object: event)
             }
         }
         

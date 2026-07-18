@@ -2,7 +2,7 @@ import Cocoa
 import CoreGraphics
 
 class EventTapMonitor {
-    var onKeyDown: ((CGEvent) -> Void)?
+    var onKeyEvent: ((CGEvent, Bool) -> Void)?
     private var eventPort: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
@@ -15,9 +15,8 @@ class EventTapMonitor {
             print("Uyarı: Signal'ın tuş vuruşlarını dinlemek için Erişilebilirlik iznine ihtiyacı var.")
         }
 
-        // Sadece KeyDown eventlerini dinle (Flagleri dinlemiyoruz şimdilik sessiz olması için)
-        // Eğer her tuş bırakılıp basıldığında (veya Shift basıldığında) ses çıkması isteniyorsa flagsChanged eklenebilir.
-        let eventMask = (1 << CGEventType.keyDown.rawValue)
+        // Sadece KeyDown ve KeyUp eventlerini dinle
+        let eventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
 
         // Callback closure tanımı (C fonksiyonu işaretçisi yerine statik metod üzerinden yönlendirme)
         eventPort = CGEvent.tapCreate(
@@ -28,8 +27,9 @@ class EventTapMonitor {
             callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
                 if let refcon = refcon {
                     let monitor = Unmanaged<EventTapMonitor>.fromOpaque(refcon).takeUnretainedValue()
-                    if type == .keyDown {
-                        monitor.onKeyDown?(event)
+                    if type == .keyDown || type == .keyUp {
+                        let isDown = (type == .keyDown)
+                        monitor.onKeyEvent?(event, isDown)
                     }
                 }
                 // Event'i sisteme ve diğer uygulamalara olduğu gibi geçir

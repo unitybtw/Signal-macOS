@@ -83,8 +83,15 @@ class AudioSynthesizer: ObservableObject {
     }
     
     private let engine = AVAudioEngine()
-    private let playerNode = AVAudioPlayerNode()
-    private let pitchEffect = AVAudioUnitTimePitch()
+    
+    struct SynthChannel {
+        let player: AVAudioPlayerNode
+        let pitch: AVAudioUnitTimePitch
+    }
+    
+    private let channelCount = 10
+    private var channels: [SynthChannel] = []
+    private var currentChannelIndex = 0
 
     // Synth Buffers
     private var mechanicalBuffer: AVAudioPCMBuffer?
@@ -160,19 +167,27 @@ class AudioSynthesizer: ObservableObject {
             channelData[i] = Float(sin(2.0 * .pi * freq * t)) * env * 0.4
         }
         
-        playerNode.scheduleBuffer(buffer, at: nil, options: .interrupts)
-        if !playerNode.isPlaying { playerNode.play() }
+        let channel = channels[0]
+        channel.player.scheduleBuffer(buffer, at: nil, options: .interrupts)
+        if !channel.player.isPlaying { channel.player.play() }
     }
     
     private func setupEngine() {
-        engine.attach(playerNode)
-        engine.attach(pitchEffect)
-        
         let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false)
         
-        if let fmt = format {
-            engine.connect(playerNode, to: pitchEffect, format: fmt)
-            engine.connect(pitchEffect, to: engine.mainMixerNode, format: fmt)
+        for _ in 0..<channelCount {
+            let player = AVAudioPlayerNode()
+            let pitch = AVAudioUnitTimePitch()
+            
+            engine.attach(player)
+            engine.attach(pitch)
+            
+            if let fmt = format {
+                engine.connect(player, to: pitch, format: fmt)
+                engine.connect(pitch, to: engine.mainMixerNode, format: nil)
+            }
+            
+            channels.append(SynthChannel(player: player, pitch: pitch))
         }
         
         engine.mainMixerNode.outputVolume = volume
@@ -194,7 +209,7 @@ class AudioSynthesizer: ObservableObject {
         playKeySound()
     }
     
-    func playKeySound(keyCode: Int64 = 0) {
+    func playKeySound(keyCode: Int64 = 0, isDown: Bool = true) {
         guard engine.isRunning && !isMuted else { return }
         
         let bufferToPlay: AVAudioPCMBuffer?
@@ -256,19 +271,43 @@ class AudioSynthesizer: ObservableObject {
             break
         }
         
-        if isOrganicPitchEnabled {
-            pitchEffect.pitch = basePitch + Float.random(in: -80...80)
-        } else {
-            pitchEffect.pitch = basePitch
+        // Up/Down modification
+        if !isDown {
+            basePitch += 600 // higher pitch for key return (clack)
+            volumeModifier *= 0.3 // softer return
         }
         
-        // Apply Volume Modifier if engine supports it. (We can't easily change individual hit volume without a separate player node per hit or AVAudioMixerNode per sound). 
-        // For now, we rely on the pitch change which already gives a strong acoustic difference!
+        // Spatial Audio / Panning based on Key Code position
+        let leftKeys: Set<Int64> = [50, 10, 0, 6, 12, 1, 13, 2, 14, 7, 3, 15, 8, 53, 48]
+        let rightKeys: Set<Int64> = [32, 34, 38, 40, 37, 41, 39, 42, 36, 51, 35, 31, 46, 45, 43, 44, 47]
         
-        playerNode.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
+        var panValue: Float = 0.0
+        if leftKeys.contains(keyCode) {
+            panValue = -0.5
+        } else if rightKeys.contains(keyCode) {
+            panValue = 0.5
+        } else if keyCode == 49 { // Space
+            panValue = 0.0
+        } else {
+            panValue = Float.random(in: -0.15...0.15)
+        }
         
-        if !playerNode.isPlaying {
-            playerNode.play()
+        let channel = channels[currentChannelIndex]
+        currentChannelIndex = (currentChannelIndex + 1) % channelCount
+        
+        if isOrganicPitchEnabled {
+            channel.pitch.pitch = basePitch + Float.random(in: -80...80)
+        } else {
+            channel.pitch.pitch = basePitch
+        }
+        
+        channel.player.pan = panValue
+        channel.player.volume = volumeModifier
+        
+        channel.player.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
+        
+        if !channel.player.isPlaying {
+            channel.player.play()
         }
     }
     

@@ -31,6 +31,7 @@ swiftc -g -Onone \
   $SOURCES -o "$MACOS_DIR/$APP_NAME"
 
 echo "🔐 Uygulama Kod İmzası (Code Sign) oluşturuluyor..."
+xattr -cr "$APP_DIR"
 codesign -s "-" --force --deep "$APP_DIR"
 
 echo "✅ Derleme başarılı! Uygulama '$APP_DIR' olarak hazırlandı."
