@@ -190,7 +190,6 @@ class AudioSynthesizer: ObservableObject {
     
     private func setupEngine() {
         let monoFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false)
-        let stereoFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 2, interleaved: false)
         
         for _ in 0..<channelCount {
             let player = AVAudioPlayerNode()
@@ -201,10 +200,10 @@ class AudioSynthesizer: ObservableObject {
             engine.attach(pitch)
             engine.attach(mixer)
             
-            if let mono = monoFormat, let stereo = stereoFormat {
+            if let mono = monoFormat {
                 engine.connect(player, to: pitch, format: mono)
                 engine.connect(pitch, to: mixer, format: mono)
-                engine.connect(mixer, to: engine.mainMixerNode, format: stereo)
+                engine.connect(mixer, to: engine.mainMixerNode, format: nil)
             }
             
             channels.append(SynthChannel(player: player, pitch: pitch, mixer: mixer))
