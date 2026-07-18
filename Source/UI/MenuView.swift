@@ -259,6 +259,19 @@ struct MenuView: View {
                     }
                     
                     HStack {
+                        Label("Mouse Clicks", systemImage: "computermouse.fill")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.primary.opacity(0.8))
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $audioSynthesizer.isMouseSoundEnabled)
+                            .toggleStyle(SwitchToggleStyle(tint: .blue))
+                            .labelsHidden()
+                            .controlSize(.small)
+                    }
+                    
+                    HStack {
                         Label("Start at Login", systemImage: "macwindow.badge.plus")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.primary.opacity(0.8))

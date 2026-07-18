@@ -83,6 +83,7 @@ enum AudioTheme: CaseIterable {
 class AudioSynthesizer: ObservableObject {
     @Published var currentTheme: AudioTheme = .mechanical
     @Published var isMuted: Bool = false
+    @Published var isMouseSoundEnabled: Bool = false
     @Published var isErrorSoundEnabled: Bool = true
     @Published var isOrganicPitchEnabled: Bool = true
     @Published var hasPermission: Bool = AXIsProcessTrusted()
@@ -233,6 +234,64 @@ class AudioSynthesizer: ObservableObject {
         // --- Tema Önizleme Sesi ---
         // Picker değiştiğinde kullanıcıya yeni sesin bir örneğini çal
         playKeySound()
+    }
+    
+    func playMouseSound(isLeft: Bool) {
+        guard engine.isRunning && !isMuted && isMouseSoundEnabled else { return }
+        
+        var bufferToPlay: AVAudioPCMBuffer?
+        switch currentTheme {
+        case .cherryMXBlue: bufferToPlay = cherryMXBlueBuffer
+        case .cherryMXBrown: bufferToPlay = cherryMXBrownBuffer
+        case .cherryMXRed: bufferToPlay = cherryMXRedBuffer
+        case .topre: bufferToPlay = topreBuffer
+        case .holyPanda: bufferToPlay = holyPandaBuffer
+        case .mechanical: bufferToPlay = mechanicalBuffer
+        case .mechanicalClicky: bufferToPlay = mechanicalClickyBuffer
+        case .typewriter: bufferToPlay = typewriterBuffer
+        case .scifi: bufferToPlay = scifiBuffer
+        case .arcade: bufferToPlay = arcadeBuffer
+        case .waterDrop: bufferToPlay = waterDropBuffer
+        case .glockenspiel: bufferToPlay = glockenspielBuffer
+        case .woodenBlock: bufferToPlay = woodenBlockBuffer
+        case .vinylScratch: bufferToPlay = vinylScratchBuffer
+        case .bubblePop: bufferToPlay = bubblePopBuffer
+        case .percussiveDjembe: bufferToPlay = percussiveDjembeBuffer
+        case .alienBlaster: bufferToPlay = alienBlasterBuffer
+        case .percussive808: bufferToPlay = percussive808Buffer
+        case .laserGun: bufferToPlay = laserGunBuffer
+        case .catMeow: bufferToPlay = catMeowBuffer
+        case .rainDrop: bufferToPlay = rainDropBuffer
+        case .digitalBeep: bufferToPlay = digitalBeepBuffer
+        case .retroPhone: bufferToPlay = retroPhoneBuffer
+        case .heartBeat: bufferToPlay = heartBeatBuffer
+        case .spaceSweep: bufferToPlay = spaceSweepBuffer
+        case .cameraClick: bufferToPlay = cameraClickBuffer
+        case .coinCollect: bufferToPlay = coinCollectBuffer
+        case .thunderZap: bufferToPlay = thunderZapBuffer
+        case .forestWind: bufferToPlay = forestWindBuffer
+        case .deepThud: bufferToPlay = deepThudBuffer
+        case .heavyMetal: bufferToPlay = heavyMetalBuffer
+        case .neonBeep: bufferToPlay = neonBeepBuffer
+        case .natureWood: bufferToPlay = natureWoodBuffer
+        case .subBass: bufferToPlay = subBassBuffer
+        case .airRush: bufferToPlay = airRushBuffer
+        }
+        
+        guard let pcmBuffer = bufferToPlay else { return }
+        
+        let channel = channels[currentChannelIndex]
+        currentChannelIndex = (currentChannelIndex + 1) % channelCount
+        
+        // Mouse click is higher pitch and softer
+        channel.pitch.pitch = isLeft ? 1200 : 900 // Right click is deeper
+        channel.mixer.pan = isLeft ? -0.2 : 0.2
+        channel.player.volume = 0.4
+        
+        channel.player.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
+        if !channel.player.isPlaying {
+            channel.player.play()
+        }
     }
     
     func playKeySound(keyCode: Int64 = 0, isDown: Bool = true) {

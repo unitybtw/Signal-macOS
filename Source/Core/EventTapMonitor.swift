@@ -3,6 +3,7 @@ import CoreGraphics
 
 class EventTapMonitor {
     var onKeyEvent: ((CGEvent, Bool) -> Void)?
+    var onMouseEvent: ((CGEvent, Bool) -> Void)?
     private var eventPort: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
@@ -15,8 +16,11 @@ class EventTapMonitor {
             print("Uyarı: Signal'ın tuş vuruşlarını dinlemek için Erişilebilirlik iznine ihtiyacı var.")
         }
 
-        // Sadece KeyDown ve KeyUp eventlerini dinle
-        let eventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+        // KeyDown, KeyUp ve MouseDown eventlerini dinle
+        let eventMask = (1 << CGEventType.keyDown.rawValue) | 
+                        (1 << CGEventType.keyUp.rawValue) |
+                        (1 << CGEventType.leftMouseDown.rawValue) |
+                        (1 << CGEventType.rightMouseDown.rawValue)
 
         // Callback closure tanımı (C fonksiyonu işaretçisi yerine statik metod üzerinden yönlendirme)
         eventPort = CGEvent.tapCreate(
@@ -33,6 +37,9 @@ class EventTapMonitor {
                             let isDown = (type == .keyDown)
                             monitor.onKeyEvent?(event, isDown)
                         }
+                    } else if type == .leftMouseDown || type == .rightMouseDown {
+                        let isLeft = (type == .leftMouseDown)
+                        monitor.onMouseEvent?(event, isLeft)
                     }
                 }
                 // Event'i sisteme ve diğer uygulamalara olduğu gibi geçir

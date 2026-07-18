@@ -80,6 +80,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             }
         }
         
+        keyEventMonitor.onMouseEvent = { [weak self] event, isLeft in
+            guard let self = self else { return }
+            self.audioSynthesizer.playMouseSound(isLeft: isLeft)
+        }
+        
         // Kullanıcı sonradan izin verirse dinleyiciyi (EventTap) yeniden başlat
         NotificationCenter.default.addObserver(forName: NSNotification.Name("RestartMonitor"), object: nil, queue: .main) { [weak self] _ in
             self?.keyEventMonitor.stop()
