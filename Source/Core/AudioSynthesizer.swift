@@ -3,6 +3,11 @@ import CoreAudio
 import Combine
 
 enum AudioTheme: CaseIterable {
+    case cherryMXBlue
+    case cherryMXBrown
+    case cherryMXRed
+    case topre
+    case holyPanda
     case mechanical
     case mechanicalClicky
     case typewriter
@@ -36,6 +41,11 @@ enum AudioTheme: CaseIterable {
     
     var displayName: String {
         switch self {
+        case .cherryMXBlue: return "Cherry Blue"
+        case .cherryMXBrown: return "Cherry Brown"
+        case .cherryMXRed: return "Cherry Red"
+        case .topre: return "Topre"
+        case .holyPanda: return "Holy Panda"
         case .mechanical: return "Mech (Linear)"
         case .mechanicalClicky: return "Mech (Clicky)"
         case .typewriter: return "Typewriter"
@@ -95,6 +105,11 @@ class AudioSynthesizer: ObservableObject {
     private var currentChannelIndex = 0
 
     // Synth Buffers
+    private var cherryMXBlueBuffer: AVAudioPCMBuffer?
+    private var cherryMXBrownBuffer: AVAudioPCMBuffer?
+    private var cherryMXRedBuffer: AVAudioPCMBuffer?
+    private var topreBuffer: AVAudioPCMBuffer?
+    private var holyPandaBuffer: AVAudioPCMBuffer?
     private var mechanicalBuffer: AVAudioPCMBuffer?
     private var mechanicalClickyBuffer: AVAudioPCMBuffer?
     private var typewriterBuffer: AVAudioPCMBuffer?
@@ -219,6 +234,11 @@ class AudioSynthesizer: ObservableObject {
         
         let bufferToPlay: AVAudioPCMBuffer?
         switch currentTheme {
+        case .cherryMXBlue: bufferToPlay = cherryMXBlueBuffer
+        case .cherryMXBrown: bufferToPlay = cherryMXBrownBuffer
+        case .cherryMXRed: bufferToPlay = cherryMXRedBuffer
+        case .topre: bufferToPlay = topreBuffer
+        case .holyPanda: bufferToPlay = holyPandaBuffer
         case .mechanical: bufferToPlay = mechanicalBuffer
         case .mechanicalClicky: bufferToPlay = mechanicalClickyBuffer
         case .typewriter: bufferToPlay = typewriterBuffer
@@ -326,6 +346,11 @@ class AudioSynthesizer: ObservableObject {
     private func generateSynthBuffers() {
         guard let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false) else { return }
         
+        self.cherryMXBlueBuffer = createClickBuffer(format: format, type: .cherryMXBlue)
+        self.cherryMXBrownBuffer = createClickBuffer(format: format, type: .cherryMXBrown)
+        self.cherryMXRedBuffer = createClickBuffer(format: format, type: .cherryMXRed)
+        self.topreBuffer = createClickBuffer(format: format, type: .topre)
+        self.holyPandaBuffer = createClickBuffer(format: format, type: .holyPanda)
         self.mechanicalBuffer = loadAudioFile(name: "mechanical", format: format) ?? createClickBuffer(format: format, type: .mechanical)
         self.mechanicalClickyBuffer = createClickBuffer(format: format, type: .mechanicalClicky)
         self.typewriterBuffer = loadAudioFile(name: "typewriter", format: format) ?? createClickBuffer(format: format, type: .typewriter)
@@ -377,12 +402,17 @@ class AudioSynthesizer: ObservableObject {
         }
     }
     
-    enum SynthType { case mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
+    enum SynthType { case cherryMXBlue, cherryMXBrown, cherryMXRed, topre, holyPanda, mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
     
     private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
         let sampleRate = format.sampleRate
         let duration: Double
         switch type {
+        case .cherryMXBlue: duration = 0.05
+        case .cherryMXBrown: duration = 0.05
+        case .cherryMXRed: duration = 0.04
+        case .topre: duration = 0.06
+        case .holyPanda: duration = 0.05
         case .mechanical: duration = 0.04
         case .mechanicalClicky: duration = 0.04
         case .typewriter: duration = 0.08
@@ -425,6 +455,40 @@ class AudioSynthesizer: ObservableObject {
             var sample: Float = 0.0
             
             switch type {
+            case .cherryMXBlue:
+                let attackEnv = Float(exp(-t * 2000.0))
+                let bodyEnv = Float(exp(-t * 150.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let click = (Float(sin(2.0 * .pi * 4500.0 * t)) * 0.6 + noise * 0.4) * attackEnv
+                let body = Float(sin(2.0 * .pi * 300.0 * t)) * bodyEnv
+                sample = (click * 1.5 + body * 0.5) * 1.3
+            case .cherryMXBrown:
+                let attackEnv = Float(exp(-t * 600.0))
+                let bodyEnv = Float(exp(-t * 200.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let bump = (Float(sin(2.0 * .pi * 800.0 * t)) * 0.5 + noise * 0.2) * attackEnv
+                let body = Float(sin(2.0 * .pi * 220.0 * t)) * bodyEnv
+                sample = (bump * 1.0 + body * 0.8) * 1.4
+            case .cherryMXRed:
+                let attackEnv = Float(exp(-t * 400.0))
+                let bodyEnv = Float(exp(-t * 120.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let linearHit = noise * attackEnv * 0.3
+                let body = Float(sin(2.0 * .pi * 180.0 * t)) * bodyEnv
+                sample = (linearHit + body * 0.9) * 1.2
+            case .topre:
+                let attackEnv = Float(exp(-t * 800.0))
+                let bodyEnv = Float(exp(-t * 100.0))
+                let thock = Float(sin(2.0 * .pi * 150.0 * t)) * bodyEnv
+                let domeCollapse = Float(sin(2.0 * .pi * 400.0 * t)) * attackEnv
+                sample = (thock * 1.0 + domeCollapse * 0.4) * 1.5
+            case .holyPanda:
+                let attackEnv = Float(exp(-t * 1000.0))
+                let bodyEnv = Float(exp(-t * 180.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let tactileBump = (Float(sin(2.0 * .pi * 1200.0 * t)) * 0.4 + noise * 0.2) * attackEnv
+                let thock = Float(sin(2.0 * .pi * 200.0 * t)) * bodyEnv
+                sample = (tactileBump * 0.8 + thock * 1.2) * 1.4
             case .mechanical:
                 // Sentetik geri dönüş thock
                 let noise = Float.random(in: -1.0...1.0)

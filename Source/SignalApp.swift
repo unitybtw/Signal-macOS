@@ -88,6 +88,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         
         keyEventMonitor.start()
         
+        // Uygulama aktifken gereksiz "basso/funk" sesleri (macOS System Error Beep) çıkmasını engellemek için yerel event yutucu
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // Eğer Command gibi modifier tuşları yoksa, event'i yutarak sistemin "bip" demesini engelle.
+            return nil
+        }
+        
         // DIŞARI TIKLANDIĞINDA KAPATMA MONİTÖRÜ
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             if let self = self, self.popover.isShown {
