@@ -124,8 +124,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     func showPopover(_ sender: NSStatusBarButton) {
         NSApp.activate(ignoringOtherApps: true)
-        // .maxY popover'ın her zaman menü bar ikonunu merkezleyerek aşağı açılmasını sağlar.
-        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .maxY)
+        // .minY popover'ın her zaman menü bar ikonunu merkezleyerek aşağı açılmasını sağlar.
+        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
     }
 
     func closePopover(_ sender: Any?) {
