@@ -26,7 +26,7 @@ echo "🛠️ Swift kodları derleniyor..."
 SOURCES=$(find Source -name "*.swift")
 
 swiftc -g -Onone \
-  -target arm64-apple-macosx12.0 \
+  -target arm64-apple-macosx13.0 \
   -Xlinker -rpath -Xlinker @executable_path/../Frameworks \
   $SOURCES -o "$MACOS_DIR/$APP_NAME"
 

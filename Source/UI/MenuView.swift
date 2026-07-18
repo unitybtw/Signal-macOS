@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import ServiceManagement
 
 struct RecentKey: Identifiable {
     let id = UUID()
@@ -16,6 +17,12 @@ struct MenuView: View {
     @State private var audioPulseActive: Bool = false
     @State private var dragOffset: CGFloat = 0
     @State private var isDragging: Bool = false
+    @State private var launchAtLogin: Bool = {
+        if #available(macOS 13.0, *) {
+            return SMAppService.mainApp.status == .enabled
+        }
+        return false
+    }()
     
     let pub = NotificationCenter.default.publisher(for: NSNotification.Name("KeyPressNotification"))
 
@@ -117,7 +124,7 @@ struct MenuView: View {
                         .transition(.opacity)
                     }
                 }
-                .frame(height: 85, alignment: .top)
+                .frame(minHeight: 85, alignment: .top)
                 
                 // SES PROFİLİ SEÇİCİ
                 VStack(alignment: .leading, spacing: 8) {
@@ -143,7 +150,7 @@ struct MenuView: View {
                                             .padding(.horizontal, 14)
                                             .padding(.vertical, 6)
                                             .background(
-                                                ZStack {
+                                                Group {
                                                     if isSelected {
                                                         RoundedRectangle(cornerRadius: 6)
                                                             .fill(Color(NSColor.controlBackgroundColor))
@@ -151,8 +158,7 @@ struct MenuView: View {
                                                             .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.primary.opacity(0.05), lineWidth: 0.5))
                                                             .matchedGeometryEffect(id: "segmentSelection", in: selectionNamespace)
                                                     } else {
-                                                        RoundedRectangle(cornerRadius: 6)
-                                                            .fill(Color.clear)
+                                                        Color.clear
                                                     }
                                                 }
                                             )
@@ -164,6 +170,7 @@ struct MenuView: View {
                             .padding(4)
                             .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.04)))
                         }
+                        .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 
@@ -215,6 +222,32 @@ struct MenuView: View {
                             .toggleStyle(SwitchToggleStyle(tint: .orange))
                             .labelsHidden()
                             .controlSize(.small)
+                    }
+                    
+                    HStack {
+                        Label("Start at Login", systemImage: "macwindow.badge.plus")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.primary.opacity(0.8))
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $launchAtLogin)
+                            .toggleStyle(SwitchToggleStyle(tint: .green))
+                            .labelsHidden()
+                            .controlSize(.small)
+                            .onChange(of: launchAtLogin) { newValue in
+                                if #available(macOS 13.0, *) {
+                                    do {
+                                        if newValue {
+                                            try SMAppService.mainApp.register()
+                                        } else {
+                                            try SMAppService.mainApp.unregister()
+                                        }
+                                    } catch {
+                                        print("Failed to change login item: \(error)")
+                                    }
+                                }
+                            }
                     }
                 }
             }
@@ -288,7 +321,6 @@ struct MenuView: View {
                     .animation(.easeInOut(duration: 0.5), value: audioPulseActive)
             }
         )
-        .background(VisualEffectView(material: .popover, blendingMode: .withinWindow))
         .frame(width: 260)
         .onReceive(pub) { _ in
             let newKey = RecentKey(char: "•") 
@@ -311,5 +343,23 @@ struct MenuView: View {
             let now = Date()
             recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
         }
+    }
+}
+
+struct VisualEffectView: NSViewRepresentable {
+    let material: NSVisualEffectView.Material
+    let blendingMode: NSVisualEffectView.BlendingMode
+    
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = material
+        view.blendingMode = blendingMode
+        view.state = .active
+        return view
+    }
+    
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        nsView.material = material
+        nsView.blendingMode = blendingMode
     }
 }
