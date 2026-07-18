@@ -57,7 +57,7 @@ struct MenuView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
+            .background(Material.ultraThin)
             
             Divider()
             
@@ -322,6 +322,7 @@ struct MenuView: View {
             }
         )
         .frame(width: 260)
+        .fixedSize(horizontal: false, vertical: true)
         .onReceive(pub) { _ in
             let newKey = RecentKey(char: "•") 
             withAnimation(.spring()) {
