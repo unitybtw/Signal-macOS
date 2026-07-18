@@ -55,9 +55,9 @@ struct MenuView: View {
                         .opacity(audioPulseActive ? 0.5 : 1.0)
                 }
             }
+            .frame(height: 48)
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Material.ultraThin)
+            .background(Color.primary.opacity(0.05))
             
             Divider()
             
@@ -321,6 +321,7 @@ struct MenuView: View {
                     .animation(.easeInOut(duration: 0.5), value: audioPulseActive)
             }
         )
+        .padding(.top, 4)
         .frame(width: 260)
         .fixedSize(horizontal: false, vertical: true)
         .onReceive(pub) { _ in
