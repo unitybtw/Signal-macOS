@@ -49,7 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                 image.isTemplate = true
                 button.image = image
             } else {
-                button.title = "🎛️ Signal" // Geri dönüş (Yedek metin)
+                button.title = "Signal" // Geri dönüş (Yedek metin)
             }
             button.action = #selector(togglePopover(_:))
             button.target = self
@@ -106,7 +106,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if let event = NSApp.currentEvent, event.type == .rightMouseUp {
             let menu = NSMenu()
             
-            let muteItem = NSMenuItem(title: audioSynthesizer.isMuted ? "▶️ Unmute Sounds" : "⏸️ Mute Sounds", action: #selector(toggleMute), keyEquivalent: "")
+            let muteItem = NSMenuItem(title: audioSynthesizer.isMuted ? "Unmute Sounds" : "Mute Sounds", action: #selector(toggleMute), keyEquivalent: "")
             muteItem.target = self
             menu.addItem(muteItem)
             

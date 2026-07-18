@@ -28,8 +28,11 @@ class EventTapMonitor {
                 if let refcon = refcon {
                     let monitor = Unmanaged<EventTapMonitor>.fromOpaque(refcon).takeUnretainedValue()
                     if type == .keyDown || type == .keyUp {
-                        let isDown = (type == .keyDown)
-                        monitor.onKeyEvent?(event, isDown)
+                        let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+                        if !isRepeat {
+                            let isDown = (type == .keyDown)
+                            monitor.onKeyEvent?(event, isDown)
+                        }
                     }
                 }
                 // Event'i sisteme ve diğer uygulamalara olduğu gibi geçir

@@ -60,7 +60,7 @@ enum AudioTheme: CaseIterable {
         case .alienBlaster: return "Alien"
         case .percussive808: return "808"
         case .laserGun: return "Laser"
-        case .catMeow: return "Meow 🐱"
+        case .catMeow: return "Meow"
         case .rainDrop: return "Rain"
         case .digitalBeep: return "Digital"
         case .retroPhone: return "Phone"
