@@ -33,6 +33,7 @@ swiftc -g -Onone \
 
 echo "🔐 Uygulama Kod İmzası (Code Sign) oluşturuluyor..."
 find "$APP_DIR" -name ".DS_Store" -delete
+find "$APP_DIR" -name "._*" -delete
 xattr -cr "$APP_DIR"
 codesign -s "-" --force --deep "$APP_DIR"
 

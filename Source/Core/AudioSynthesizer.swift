@@ -131,6 +131,7 @@ class AudioSynthesizer: ObservableObject {
     }
     
     private let engine = AVAudioEngine()
+    private let reverbNode = AVAudioUnitReverb()
     
     struct SynthChannel {
         let player: AVAudioPlayerNode
@@ -298,11 +299,19 @@ class AudioSynthesizer: ObservableObject {
             if let mono = monoFormat {
                 engine.connect(player, to: pitch, format: mono)
                 engine.connect(pitch, to: mixer, format: mono)
-                engine.connect(mixer, to: engine.mainMixerNode, format: nil)
+                engine.connect(mixer, to: engine.mainMixerNode, format: mono)
             }
             
             channels.append(SynthChannel(player: player, pitch: pitch, mixer: mixer))
         }
+        
+        reverbNode.loadFactoryPreset(.largeHall)
+        reverbNode.wetDryMix = 0.0
+        engine.attach(reverbNode)
+        
+        let outputFormat = engine.outputNode.inputFormat(forBus: 0)
+        engine.connect(engine.mainMixerNode, to: reverbNode, format: outputFormat)
+        engine.connect(reverbNode, to: engine.outputNode, format: outputFormat)
         
         engine.mainMixerNode.outputVolume = volume
     }
@@ -486,12 +495,19 @@ class AudioSynthesizer: ObservableObject {
                 let momentum = min(wpmApprox / 120.0, 1.0)
                 
                 if wpmApprox >= 100.0 {
-                    // COMBO MODE (Fire Mode): Aggressive pitch and volume scaling
+                    // COMBO MODE (Fire Mode): Aggressive pitch, volume scaling and REVERB
                     volumeModifier *= Float(1.0 + (momentum * 0.4))
                     basePitch += Float(momentum * 250.0)
+                    
+                    let targetReverb = Float(min((wpmApprox - 100.0) * 1.5, 40.0)) // Max 40% reverb
+                    self.reverbNode.wetDryMix = targetReverb
                 } else {
                     volumeModifier *= Float(1.0 + (momentum * 0.2))
                     basePitch += Float(momentum * 150.0)
+                    
+                    if self.reverbNode.wetDryMix > 0 {
+                        self.reverbNode.wetDryMix = max(self.reverbNode.wetDryMix - 5.0, 0)
+                    }
                 }
             }
             
