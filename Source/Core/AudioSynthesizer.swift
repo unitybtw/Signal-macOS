@@ -20,6 +20,11 @@ enum AudioTheme: String, CaseIterable {
     case cherryMXBlack
     case kailhBoxJade
     case gateronOilKing
+    case akkoMatchaGreen
+    case kttKangWhite
+    case gloriousPanda
+    case dropHaloTrue
+    case c3Tangerine
     case mechanical
     case mechanicalClicky
     case typewriter
@@ -69,7 +74,12 @@ enum AudioTheme: String, CaseIterable {
         case .cherryMXBlack: return "Cherry Black"
         case .kailhBoxJade: return "Box Jade"
         case .gateronOilKing: return "Oil King"
-        case .mechanical: return "Mech (Linear)"
+        case .akkoMatchaGreen: return "Akko Matcha Green"
+        case .kttKangWhite: return "KTT Kang White"
+        case .gloriousPanda: return "Glorious Panda"
+        case .dropHaloTrue: return "Drop Halo True"
+        case .c3Tangerine: return "C3 Tangerine"
+        case .mechanical: return "Mechanical (Linear)"
         case .mechanicalClicky: return "Mech (Clicky)"
         case .typewriter: return "Typewriter"
         case .scifi: return "Sci-Fi"
@@ -163,6 +173,11 @@ class AudioSynthesizer: ObservableObject {
     private var cherryMXBlackBuffer: AVAudioPCMBuffer?
     private var kailhBoxJadeBuffer: AVAudioPCMBuffer?
     private var gateronOilKingBuffer: AVAudioPCMBuffer?
+    private var akkoMatchaGreenBuffer: AVAudioPCMBuffer?
+    private var kttKangWhiteBuffer: AVAudioPCMBuffer?
+    private var gloriousPandaBuffer: AVAudioPCMBuffer?
+    private var dropHaloTrueBuffer: AVAudioPCMBuffer?
+    private var c3TangerineBuffer: AVAudioPCMBuffer?
     
     // Dedicated Modifiers
     private var mechanicalSpacebarBuffer: AVAudioPCMBuffer?
@@ -359,6 +374,12 @@ class AudioSynthesizer: ObservableObject {
         case .cherryMXBlack: return self.cherryMXBlackBuffer
         case .kailhBoxJade: return self.kailhBoxJadeBuffer
         case .gateronOilKing: return self.gateronOilKingBuffer
+        case .akkoMatchaGreen: return akkoMatchaGreenBuffer
+        case .kttKangWhite: return kttKangWhiteBuffer
+        case .gloriousPanda: return gloriousPandaBuffer
+        case .dropHaloTrue: return dropHaloTrueBuffer
+        case .c3Tangerine: return c3TangerineBuffer
+        
         case .mechanical: return self.mechanicalBuffer
         case .mechanicalClicky: return self.mechanicalClickyBuffer
         case .typewriter: return self.typewriterBuffer
@@ -574,6 +595,12 @@ class AudioSynthesizer: ObservableObject {
         self.kailhBoxJadeBuffer = createClickBuffer(format: format, type: .kailhBoxJade)
         self.gateronOilKingBuffer = createClickBuffer(format: format, type: .gateronOilKing)
         
+        self.akkoMatchaGreenBuffer = createClickBuffer(format: format, type: .akkoMatchaGreen)
+        self.kttKangWhiteBuffer = createClickBuffer(format: format, type: .kttKangWhite)
+        self.gloriousPandaBuffer = createClickBuffer(format: format, type: .gloriousPanda)
+        self.dropHaloTrueBuffer = createClickBuffer(format: format, type: .dropHaloTrue)
+        self.c3TangerineBuffer = createClickBuffer(format: format, type: .c3Tangerine)
+        
         self.mechanicalSpacebarBuffer = createClickBuffer(format: format, type: .mechanicalSpacebar)
         self.mechanicalEnterBuffer = createClickBuffer(format: format, type: .mechanicalEnter)
         self.mechanicalKeyUpBuffer = createClickBuffer(format: format, type: .mechanicalKeyUp)
@@ -628,9 +655,7 @@ class AudioSynthesizer: ObservableObject {
             return nil
         }
     }
-    
-    enum SynthType { case cherryMXBlue, cherryMXBrown, cherryMXRed, topre, holyPanda, gateronBlackInk, kailhBoxWhite, zealiosV2, alpacaLinear, novelKeysCream, bucklingSpring, gateronYellow, bobaU4T, cherryMXBlack, kailhBoxJade, gateronOilKing, mechanicalSpacebar, mechanicalEnter, mechanicalKeyUp, mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
-    
+    enum SynthType { case cherryMXBlue, cherryMXBrown, cherryMXRed, topre, holyPanda, gateronBlackInk, kailhBoxWhite, zealiosV2, alpacaLinear, novelKeysCream, bucklingSpring, gateronYellow, bobaU4T, cherryMXBlack, kailhBoxJade, gateronOilKing, akkoMatchaGreen, kttKangWhite, gloriousPanda, dropHaloTrue, c3Tangerine, mechanicalSpacebar, mechanicalEnter, mechanicalKeyUp, mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
     private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
         let sampleRate = format.sampleRate
         let duration: Double
@@ -651,6 +676,11 @@ class AudioSynthesizer: ObservableObject {
         case .cherryMXBlack: duration = 0.05
         case .kailhBoxJade: duration = 0.055
         case .gateronOilKing: duration = 0.05
+        case .akkoMatchaGreen: duration = 0.05
+        case .kttKangWhite: duration = 0.045
+        case .gloriousPanda: duration = 0.055
+        case .dropHaloTrue: duration = 0.05
+        case .c3Tangerine: duration = 0.04
         case .mechanicalSpacebar: duration = 0.1
         case .mechanicalEnter: duration = 0.08
         case .mechanicalKeyUp: duration = 0.03
@@ -809,6 +839,41 @@ class AudioSynthesizer: ObservableObject {
                 let smoothClack = (Float(sin(2.0 * .pi * 160.0 * t)) * 0.3 + noise * 0.1) * attackEnv
                 let deepBody = Float(sin(2.0 * .pi * 110.0 * t)) * bodyEnv
                 sample = (smoothClack * 0.8 + deepBody * 1.6) * 1.3
+            case .akkoMatchaGreen:
+                let attackEnv = Float(exp(-t * 280.0))
+                let bodyEnv = Float(exp(-t * 110.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let clack = (Float(sin(2.0 * .pi * 280.0 * t)) * 0.4 + noise * 0.15) * attackEnv
+                let body = Float(sin(2.0 * .pi * 140.0 * t)) * bodyEnv
+                sample = (clack * 1.1 + body * 1.3) * 1.3
+            case .kttKangWhite:
+                let attackEnv = Float(exp(-t * 300.0))
+                let bodyEnv = Float(exp(-t * 130.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let clack = (Float(sin(2.0 * .pi * 240.0 * t)) * 0.3 + noise * 0.1) * attackEnv
+                let thock = Float(sin(2.0 * .pi * 120.0 * t)) * bodyEnv
+                sample = (clack * 0.9 + thock * 1.5) * 1.4
+            case .gloriousPanda:
+                let attackEnv = Float(exp(-t * 700.0))
+                let bodyEnv = Float(exp(-t * 160.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let sharpBump = (Float(sin(2.0 * .pi * 1100.0 * t)) * 0.5 + noise * 0.2) * attackEnv
+                let deepThock = Float(sin(2.0 * .pi * 180.0 * t)) * bodyEnv
+                sample = (sharpBump * 1.1 + deepThock * 1.3) * 1.4
+            case .dropHaloTrue:
+                let attackEnv = Float(exp(-t * 600.0))
+                let bodyEnv = Float(exp(-t * 140.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let heavyBump = (Float(sin(2.0 * .pi * 900.0 * t)) * 0.6 + noise * 0.3) * attackEnv
+                let thud = Float(sin(2.0 * .pi * 160.0 * t)) * bodyEnv
+                sample = (heavyBump * 1.0 + thud * 1.2) * 1.3
+            case .c3Tangerine:
+                let attackEnv = Float(exp(-t * 400.0))
+                let bodyEnv = Float(exp(-t * 100.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let highClack = (Float(sin(2.0 * .pi * 500.0 * t)) * 0.6 + noise * 0.2) * attackEnv
+                let body = Float(sin(2.0 * .pi * 220.0 * t)) * bodyEnv
+                sample = (highClack * 1.2 + body * 0.9) * 1.3
             case .mechanicalSpacebar:
                 let attackEnv = Float(exp(-t * 300.0))
                 let bodyEnv = Float(exp(-t * 50.0))
