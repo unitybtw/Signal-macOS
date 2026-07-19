@@ -8,6 +8,7 @@ MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 
 echo "🧹 Eski derleme temizleniyor..."
+killall Signal 2>/dev/null || true
 rm -rf "$APP_DIR"
 
 echo "📁 Dizin yapısı oluşturuluyor..."
@@ -36,4 +37,5 @@ xattr -cr "$APP_DIR"
 codesign -s "-" --force --deep "$APP_DIR"
 
 echo "✅ Derleme başarılı! Uygulama '$APP_DIR' olarak hazırlandı."
-echo "Çalıştırmak için: open $APP_DIR"
+echo "🚀 Uygulama başlatılıyor..."
+open "$APP_DIR"
