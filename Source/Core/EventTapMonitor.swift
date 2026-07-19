@@ -6,6 +6,7 @@ class EventTapMonitor {
     var onMouseEvent: ((CGEvent, Bool, CGPoint) -> Void)?
     private var eventPort: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    fileprivate var lastFlags: UInt64 = 0 // Modifier keys state tracking
 
     func start() {
         // macOS Erişilebilirlik iznini kontrol et (Yoksak pop-up çıkar)
@@ -16,29 +17,49 @@ class EventTapMonitor {
             print("Uyarı: Signal'ın tuş vuruşlarını dinlemek için Erişilebilirlik iznine ihtiyacı var.")
         }
 
-        // KeyDown, KeyUp, MouseDown ve FlagsChanged (Modifier tuşları: Shift, Cmd vs) eventlerini dinle
-        let eventMask = (1 << CGEventType.keyDown.rawValue) | 
-                        (1 << CGEventType.keyUp.rawValue) |
-                        (1 << CGEventType.flagsChanged.rawValue) |
-                        (1 << CGEventType.leftMouseDown.rawValue) |
-                        (1 << CGEventType.rightMouseDown.rawValue)
+        // KeyDown, KeyUp, MouseDown, FlagsChanged (Modifier tuşları) ve SystemDefined (Medya tuşları) eventlerini dinle
+        let maskKeyDown = CGEventMask(1 << CGEventType.keyDown.rawValue)
+        let maskKeyUp = CGEventMask(1 << CGEventType.keyUp.rawValue)
+        let maskFlagsChanged = CGEventMask(1 << CGEventType.flagsChanged.rawValue)
+        let maskLeftMouseDown = CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
+        let maskRightMouseDown = CGEventMask(1 << CGEventType.rightMouseDown.rawValue)
+        let maskSystemDefined = CGEventMask(1 << 14) // NX_SYSDEFINED = 14
 
-        // Callback closure tanımı (C fonksiyonu işaretçisi yerine statik metod üzerinden yönlendirme)
+        let eventMask = maskKeyDown | maskKeyUp | maskFlagsChanged | maskLeftMouseDown | maskRightMouseDown | maskSystemDefined
+
+        // Callback closure tanımı
         eventPort = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
             options: .defaultTap,
-            eventsOfInterest: CGEventMask(eventMask),
+            eventsOfInterest: eventMask,
             callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
                 if let refcon = refcon {
                     let monitor = Unmanaged<EventTapMonitor>.fromOpaque(refcon).takeUnretainedValue()
-                    if type == .keyDown || type == .keyUp || type == .flagsChanged {
+                    
+                    if type == .keyDown || type == .keyUp {
                         let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
                         if !isRepeat {
-                            // FlagsChanged event'lerinde her basış/kaldırış bir keyDown gibi değerlendirilebilir (veya isDown'ı bulmak için event flaglerine bakılabilir, ancak pratik olarak tetiklemek yeterlidir)
-                            // keyDown ve flagsChanged için isDown = true sayacağız. 
-                            let isDown = (type == .keyDown || type == .flagsChanged)
+                            let isDown = (type == .keyDown)
                             monitor.onKeyEvent?(event, isDown)
+                        }
+                    } else if type == .flagsChanged {
+                        // Modifier tuş basım/çekim kontrolü
+                        let currentFlags = event.flags.rawValue
+                        let isDown = currentFlags > monitor.lastFlags
+                        monitor.lastFlags = currentFlags
+                        monitor.onKeyEvent?(event, isDown)
+                    } else if type.rawValue == 14 { // NX_SYSDEFINED
+                        // Media keys (Volume, Brightness vb.)
+                        // customKeyMacEventData1 alanını CGEvent'ten alamıyorsak NSEvent'e çevirelim
+                        if let nsEvent = NSEvent(cgEvent: event) {
+                            let data1 = nsEvent.data1
+                            let isDown = (((data1 & 0xFFFF0000) >> 16) & 0x0A) == 0x0A
+                            if isDown {
+                                monitor.onKeyEvent?(event, true)
+                            } else {
+                                monitor.onKeyEvent?(event, false)
+                            }
                         }
                     } else if type == .leftMouseDown || type == .rightMouseDown {
                         let isLeft = (type == .leftMouseDown)
