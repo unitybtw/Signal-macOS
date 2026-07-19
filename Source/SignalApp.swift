@@ -83,9 +83,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             }
         }
         
-        keyEventMonitor.onMouseEvent = { [weak self] event, isLeft, location in
+        keyEventMonitor.onMouseEvent = { [weak self] event, isLeft, isDown, location in
             guard let self = self else { return }
-            self.audioSynthesizer.playMouseSound(isLeft: isLeft, location: location)
+            self.audioSynthesizer.playMouseSound(isLeft: isLeft, isDown: isDown, location: location)
         }
         
         // Kullanıcı sonradan izin verirse dinleyiciyi (EventTap) yeniden başlat

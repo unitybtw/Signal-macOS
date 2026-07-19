@@ -3,7 +3,7 @@ import CoreGraphics
 
 class EventTapMonitor {
     var onKeyEvent: ((CGEvent, Bool) -> Void)?
-    var onMouseEvent: ((CGEvent, Bool, CGPoint) -> Void)?
+    var onMouseEvent: ((CGEvent, Bool, Bool, CGPoint) -> Void)?
     private var eventPort: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     fileprivate var lastFlags: UInt64 = 0 // Modifier keys state tracking
@@ -22,10 +22,12 @@ class EventTapMonitor {
         let maskKeyUp = CGEventMask(1 << CGEventType.keyUp.rawValue)
         let maskFlagsChanged = CGEventMask(1 << CGEventType.flagsChanged.rawValue)
         let maskLeftMouseDown = CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
+        let maskLeftMouseUp = CGEventMask(1 << CGEventType.leftMouseUp.rawValue)
         let maskRightMouseDown = CGEventMask(1 << CGEventType.rightMouseDown.rawValue)
+        let maskRightMouseUp = CGEventMask(1 << CGEventType.rightMouseUp.rawValue)
         let maskSystemDefined = CGEventMask(1 << 14) // NX_SYSDEFINED = 14
 
-        let eventMask = maskKeyDown | maskKeyUp | maskFlagsChanged | maskLeftMouseDown | maskRightMouseDown | maskSystemDefined
+        let eventMask = maskKeyDown | maskKeyUp | maskFlagsChanged | maskLeftMouseDown | maskLeftMouseUp | maskRightMouseDown | maskRightMouseUp | maskSystemDefined
 
         // Callback closure tanımı
         eventPort = CGEvent.tapCreate(
@@ -61,9 +63,10 @@ class EventTapMonitor {
                                 monitor.onKeyEvent?(event, false)
                             }
                         }
-                    } else if type == .leftMouseDown || type == .rightMouseDown {
-                        let isLeft = (type == .leftMouseDown)
-                        monitor.onMouseEvent?(event, isLeft, event.location)
+                    } else if type == .leftMouseDown || type == .rightMouseDown || type == .leftMouseUp || type == .rightMouseUp {
+                        let isLeft = (type == .leftMouseDown || type == .leftMouseUp)
+                        let isDown = (type == .leftMouseDown || type == .rightMouseDown)
+                        monitor.onMouseEvent?(event, isLeft, isDown, event.location)
                     }
                 }
                 // Event'i sisteme ve diğer uygulamalara olduğu gibi geçir

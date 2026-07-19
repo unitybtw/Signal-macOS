@@ -385,7 +385,7 @@ class AudioSynthesizer: ObservableObject {
         }
     }
     
-    func playMouseSound(isLeft: Bool, location: CGPoint) {
+    func playMouseSound(isLeft: Bool, isDown: Bool, location: CGPoint) {
         guard engine.isRunning && !isMuted && isMouseSoundEnabled else { return }
         if isSmartMuteEnabled && isSmartMutedActive { return }
         
@@ -402,9 +402,24 @@ class AudioSynthesizer: ObservableObject {
             let normalizedX = Float(location.x / screenWidth)
             pan = (normalizedX * 2.0 - 1.0) * 0.6
             
-            channel.pitch.pitch = isLeft ? 1200 : 900
+            var basePitch = isLeft ? Float(1200) : Float(900)
+            var volumeModifier: Float = 0.4
+            
+            // Unclick sound should have higher pitch and lower volume
+            if !isDown {
+                basePitch += 600
+                volumeModifier *= 0.5
+            }
+            
+            if self.isOrganicPitchEnabled {
+                channel.pitch.pitch = basePitch + Float.random(in: -50...50)
+                channel.player.volume = volumeModifier * Float.random(in: 0.9...1.1)
+            } else {
+                channel.pitch.pitch = basePitch
+                channel.player.volume = volumeModifier
+            }
+            
             channel.mixer.pan = pan
-            channel.player.volume = 0.4
             
             channel.player.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
             if !channel.player.isPlaying {
@@ -492,12 +507,13 @@ class AudioSynthesizer: ObservableObject {
             
             if self.isOrganicPitchEnabled {
                 channel.pitch.pitch = basePitch + Float.random(in: -80...80)
+                channel.player.volume = volumeModifier * Float.random(in: 0.8...1.1)
             } else {
                 channel.pitch.pitch = basePitch
+                channel.player.volume = volumeModifier
             }
             
             channel.mixer.pan = panValue
-            channel.player.volume = volumeModifier
             
             channel.player.scheduleBuffer(bufferToPlay ?? finalBuffer, at: nil, options: .interrupts)
             
