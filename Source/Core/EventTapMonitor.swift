@@ -3,7 +3,7 @@ import CoreGraphics
 
 class EventTapMonitor {
     var onKeyEvent: ((CGEvent, Bool) -> Void)?
-    var onMouseEvent: ((CGEvent, Bool) -> Void)?
+    var onMouseEvent: ((CGEvent, Bool, CGPoint) -> Void)?
     private var eventPort: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
@@ -39,7 +39,7 @@ class EventTapMonitor {
                         }
                     } else if type == .leftMouseDown || type == .rightMouseDown {
                         let isLeft = (type == .leftMouseDown)
-                        monitor.onMouseEvent?(event, isLeft)
+                        monitor.onMouseEvent?(event, isLeft, event.location)
                     }
                 }
                 // Event'i sisteme ve diğer uygulamalara olduğu gibi geçir

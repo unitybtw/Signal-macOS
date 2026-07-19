@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreAudio
 import Combine
+import AppKit
 
 enum AudioTheme: CaseIterable {
     case cherryMXBlue
@@ -238,7 +239,7 @@ class AudioSynthesizer: ObservableObject {
         playKeySound()
     }
     
-    func playMouseSound(isLeft: Bool) {
+    func playMouseSound(isLeft: Bool, location: CGPoint) {
         guard engine.isRunning && !isMuted && isMouseSoundEnabled else { return }
         if isSmartMuteEnabled && isSmartMutedActive { return }
         
@@ -286,9 +287,19 @@ class AudioSynthesizer: ObservableObject {
         let channel = channels[currentChannelIndex]
         currentChannelIndex = (currentChannelIndex + 1) % channelCount
         
+        // Mouse Spatial Panning
+        // Calculate pan based on screen width. location.x is 0 at left edge.
+        var pan: Float = 0.0
+        // EventTap callback is already on the main runloop, so we can access NSScreen directly
+        if let screenWidth = NSScreen.main?.frame.width {
+            // Map x from [0, screenWidth] to [-1.0, 1.0], but keep it within [-0.6, 0.6] for realism
+            let normalizedX = Float(location.x / screenWidth)
+            pan = (normalizedX * 2.0 - 1.0) * 0.6
+        }
+        
         // Mouse click is higher pitch and softer
         channel.pitch.pitch = isLeft ? 1200 : 900 // Right click is deeper
-        channel.mixer.pan = isLeft ? -0.2 : 0.2
+        channel.mixer.pan = pan
         channel.player.volume = 0.4
         
         channel.player.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
