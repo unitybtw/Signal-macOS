@@ -16,9 +16,10 @@ class EventTapMonitor {
             print("Uyarı: Signal'ın tuş vuruşlarını dinlemek için Erişilebilirlik iznine ihtiyacı var.")
         }
 
-        // KeyDown, KeyUp ve MouseDown eventlerini dinle
+        // KeyDown, KeyUp, MouseDown ve FlagsChanged (Modifier tuşları: Shift, Cmd vs) eventlerini dinle
         let eventMask = (1 << CGEventType.keyDown.rawValue) | 
                         (1 << CGEventType.keyUp.rawValue) |
+                        (1 << CGEventType.flagsChanged.rawValue) |
                         (1 << CGEventType.leftMouseDown.rawValue) |
                         (1 << CGEventType.rightMouseDown.rawValue)
 
@@ -31,10 +32,12 @@ class EventTapMonitor {
             callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
                 if let refcon = refcon {
                     let monitor = Unmanaged<EventTapMonitor>.fromOpaque(refcon).takeUnretainedValue()
-                    if type == .keyDown || type == .keyUp {
+                    if type == .keyDown || type == .keyUp || type == .flagsChanged {
                         let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
                         if !isRepeat {
-                            let isDown = (type == .keyDown)
+                            // FlagsChanged event'lerinde her basış/kaldırış bir keyDown gibi değerlendirilebilir (veya isDown'ı bulmak için event flaglerine bakılabilir, ancak pratik olarak tetiklemek yeterlidir)
+                            // keyDown ve flagsChanged için isDown = true sayacağız. 
+                            let isDown = (type == .keyDown || type == .flagsChanged)
                             monitor.onKeyEvent?(event, isDown)
                         }
                     } else if type == .leftMouseDown || type == .rightMouseDown {
