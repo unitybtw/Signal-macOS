@@ -117,9 +117,7 @@ class AudioSynthesizer: ObservableObject {
     @Published var isMouseSoundEnabled: Bool = UserDefaults.standard.object(forKey: "isMouseSoundEnabled") as? Bool ?? false {
         didSet { UserDefaults.standard.set(isMouseSoundEnabled, forKey: "isMouseSoundEnabled") }
     }
-    @Published var isErrorSoundEnabled: Bool = UserDefaults.standard.object(forKey: "isErrorSoundEnabled") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(isErrorSoundEnabled, forKey: "isErrorSoundEnabled") }
-    }
+
     @Published var isPopoverVisible: Bool = false
     @Published var isOrganicPitchEnabled: Bool = UserDefaults.standard.object(forKey: "isOrganicPitchEnabled") as? Bool ?? true {
         didSet { UserDefaults.standard.set(isOrganicPitchEnabled, forKey: "isOrganicPitchEnabled") }
@@ -538,13 +536,7 @@ class AudioSynthesizer: ObservableObject {
             }
         }
     }
-    
-    func playErrorSound() {
-        guard !isMuted && isErrorSoundEnabled else { return }
-        // macOS Varsayılan Hata Sesi (System Alert Sound)
-        // 0x07 (decimal 7) genellikle sistem bip sesidir, ancak kCFSoundID_UserPreferredAlert daha iyidir.
-        AudioServicesPlaySystemSound(kSystemSoundID_UserPreferredAlert)
-    }
+
     
     private func generateSynthBuffers() {
         guard let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false) else { return }

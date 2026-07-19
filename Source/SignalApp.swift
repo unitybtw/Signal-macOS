@@ -69,12 +69,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             // OPTİMİZASYON: Ses sentezini Main Thread dışına alarak SIFIR GECİKME (Zero-latency) sağla
             self.audioSynthesizer.playKeySound(keyCode: keyCode, isDown: isDown)
             
-            // Sadece tuşa basıldığında (down) hata seslerini çal ve arayüzü güncelle
+            // Sadece tuşa basıldığında (down) arayüzü güncelle
             if isDown {
-                if keyCode == 53 { // 53 = ESC key
-                    self.audioSynthesizer.playErrorSound()
-                }
-                
                 // Arayüz güncellemelerini sadece popover açıkken Main Thread'de yap (CPU Optimizasyonu)
                 if self.popover.isShown {
                     DispatchQueue.main.async {
@@ -99,7 +95,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         
         // Uygulama aktifken gereksiz "basso/funk" sesleri (macOS System Error Beep) çıkmasını engellemek için yerel event yutucu
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            // Eğer Command gibi modifier tuşları yoksa, event'i yutarak sistemin "bip" demesini engelle.
+            if event.keyCode == 53 { return event } // Esc tuşunu yutma, popover'ı kapatsın
+            // Diğer harf tuşlarını yutarak sistemin "bip" demesini engelle.
             return nil
         }
         

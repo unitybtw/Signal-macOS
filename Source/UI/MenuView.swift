@@ -245,18 +245,7 @@ struct MenuView: View {
                             .frame(width: 32)
                     }
                     
-                    HStack {
-                        Label("Sys. Error Sound", systemImage: "exclamationmark.triangle.fill")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.primary.opacity(0.8))
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $audioSynthesizer.isErrorSoundEnabled)
-                            .toggleStyle(SwitchToggleStyle(tint: .orange))
-                            .labelsHidden()
-                            .controlSize(.small)
-                    }
+
                     
                     HStack {
                         Label("Mouse Clicks", systemImage: "computermouse.fill")
