@@ -74,9 +74,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                     self.audioSynthesizer.playErrorSound()
                 }
                 
-                // Arayüz güncellemelerini Main Thread'de yap
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: NSNotification.Name("KeyPressNotification"), object: event)
+                // Arayüz güncellemelerini sadece popover açıkken Main Thread'de yap (CPU Optimizasyonu)
+                if self.popover.isShown {
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: NSNotification.Name("KeyPressNotification"), object: event)
+                    }
                 }
             }
         }

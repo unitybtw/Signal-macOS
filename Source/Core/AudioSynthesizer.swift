@@ -3,7 +3,7 @@ import CoreAudio
 import Combine
 import AppKit
 
-enum AudioTheme: CaseIterable {
+enum AudioTheme: String, CaseIterable {
     case cherryMXBlue
     case cherryMXBrown
     case cherryMXRed
@@ -94,16 +94,29 @@ enum AudioTheme: CaseIterable {
 }
 
 class AudioSynthesizer: ObservableObject {
-    @Published var currentTheme: AudioTheme = .mechanical
-    @Published var isMuted: Bool = false
-    @Published var isSmartMuteEnabled: Bool = false
+    @Published var currentTheme: AudioTheme = AudioTheme(rawValue: UserDefaults.standard.string(forKey: "currentTheme") ?? "") ?? .mechanical {
+        didSet { UserDefaults.standard.set(currentTheme.rawValue, forKey: "currentTheme") }
+    }
+    @Published var isMuted: Bool = UserDefaults.standard.object(forKey: "isMuted") as? Bool ?? false {
+        didSet { UserDefaults.standard.set(isMuted, forKey: "isMuted") }
+    }
+    @Published var isSmartMuteEnabled: Bool = UserDefaults.standard.object(forKey: "isSmartMuteEnabled") as? Bool ?? false {
+        didSet { UserDefaults.standard.set(isSmartMuteEnabled, forKey: "isSmartMuteEnabled") }
+    }
     @Published var isSmartMutedActive: Bool = false
-    @Published var isMouseSoundEnabled: Bool = false
-    @Published var isErrorSoundEnabled: Bool = true
-    @Published var isOrganicPitchEnabled: Bool = true
+    @Published var isMouseSoundEnabled: Bool = UserDefaults.standard.object(forKey: "isMouseSoundEnabled") as? Bool ?? false {
+        didSet { UserDefaults.standard.set(isMouseSoundEnabled, forKey: "isMouseSoundEnabled") }
+    }
+    @Published var isErrorSoundEnabled: Bool = UserDefaults.standard.object(forKey: "isErrorSoundEnabled") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(isErrorSoundEnabled, forKey: "isErrorSoundEnabled") }
+    }
+    @Published var isOrganicPitchEnabled: Bool = UserDefaults.standard.object(forKey: "isOrganicPitchEnabled") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(isOrganicPitchEnabled, forKey: "isOrganicPitchEnabled") }
+    }
     @Published var hasPermission: Bool = AXIsProcessTrusted()
-    @Published var volume: Float = 0.5 {
+    @Published var volume: Float = UserDefaults.standard.object(forKey: "volume") as? Float ?? 0.5 {
         didSet {
+            UserDefaults.standard.set(volume, forKey: "volume")
             engine.mainMixerNode.outputVolume = volume
         }
     }
