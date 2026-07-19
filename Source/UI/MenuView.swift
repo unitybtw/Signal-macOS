@@ -62,7 +62,7 @@ struct MenuView: View {
             Divider()
             
             // --- MAIN CONTENT ---
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 14) {
                 // İZİN VEYA TUŞ GEÇMİŞİ AKTİVİTESİ (Sabit Yükseklik)
                 VStack(alignment: .leading, spacing: 0) {
                     if !audioSynthesizer.hasPermission {
@@ -209,7 +209,7 @@ struct MenuView: View {
                 }
                 
                 // VOLUME & AYARLAR
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Text("Volume")
                             .font(.system(size: 10, weight: .bold))
@@ -323,7 +323,7 @@ struct MenuView: View {
                     }
                 }
             }
-            .padding(16)
+            .padding(12)
             
             Divider()
             
@@ -372,7 +372,7 @@ struct MenuView: View {
                 .padding(.top, 2)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.vertical, 8)
             .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
             .contextMenu {
                 Button(action: {
