@@ -9,6 +9,12 @@ enum AudioTheme: CaseIterable {
     case cherryMXRed
     case topre
     case holyPanda
+    case gateronBlackInk
+    case kailhBoxWhite
+    case zealiosV2
+    case alpacaLinear
+    case novelKeysCream
+    case bucklingSpring
     case mechanical
     case mechanicalClicky
     case typewriter
@@ -47,6 +53,12 @@ enum AudioTheme: CaseIterable {
         case .cherryMXRed: return "Cherry Red"
         case .topre: return "Topre"
         case .holyPanda: return "Holy Panda"
+        case .gateronBlackInk: return "Black Ink"
+        case .kailhBoxWhite: return "Box White"
+        case .zealiosV2: return "Zealios V2"
+        case .alpacaLinear: return "Alpaca"
+        case .novelKeysCream: return "NK Cream"
+        case .bucklingSpring: return "Model M"
         case .mechanical: return "Mech (Linear)"
         case .mechanicalClicky: return "Mech (Clicky)"
         case .typewriter: return "Typewriter"
@@ -115,6 +127,12 @@ class AudioSynthesizer: ObservableObject {
     private var cherryMXRedBuffer: AVAudioPCMBuffer?
     private var topreBuffer: AVAudioPCMBuffer?
     private var holyPandaBuffer: AVAudioPCMBuffer?
+    private var gateronBlackInkBuffer: AVAudioPCMBuffer?
+    private var kailhBoxWhiteBuffer: AVAudioPCMBuffer?
+    private var zealiosV2Buffer: AVAudioPCMBuffer?
+    private var alpacaLinearBuffer: AVAudioPCMBuffer?
+    private var novelKeysCreamBuffer: AVAudioPCMBuffer?
+    private var bucklingSpringBuffer: AVAudioPCMBuffer?
     
     // Dedicated Modifiers
     private var mechanicalSpacebarBuffer: AVAudioPCMBuffer?
@@ -250,6 +268,12 @@ class AudioSynthesizer: ObservableObject {
         case .cherryMXRed: bufferToPlay = cherryMXRedBuffer
         case .topre: bufferToPlay = topreBuffer
         case .holyPanda: bufferToPlay = holyPandaBuffer
+        case .gateronBlackInk: bufferToPlay = gateronBlackInkBuffer
+        case .kailhBoxWhite: bufferToPlay = kailhBoxWhiteBuffer
+        case .zealiosV2: bufferToPlay = zealiosV2Buffer
+        case .alpacaLinear: bufferToPlay = alpacaLinearBuffer
+        case .novelKeysCream: bufferToPlay = novelKeysCreamBuffer
+        case .bucklingSpring: bufferToPlay = bucklingSpringBuffer
         case .mechanical: bufferToPlay = mechanicalBuffer
         case .mechanicalClicky: bufferToPlay = mechanicalClickyBuffer
         case .typewriter: bufferToPlay = typewriterBuffer
@@ -319,6 +343,12 @@ class AudioSynthesizer: ObservableObject {
         case .cherryMXRed: bufferToPlay = cherryMXRedBuffer
         case .topre: bufferToPlay = topreBuffer
         case .holyPanda: bufferToPlay = holyPandaBuffer
+        case .gateronBlackInk: bufferToPlay = gateronBlackInkBuffer
+        case .kailhBoxWhite: bufferToPlay = kailhBoxWhiteBuffer
+        case .zealiosV2: bufferToPlay = zealiosV2Buffer
+        case .alpacaLinear: bufferToPlay = alpacaLinearBuffer
+        case .novelKeysCream: bufferToPlay = novelKeysCreamBuffer
+        case .bucklingSpring: bufferToPlay = bucklingSpringBuffer
         case .mechanical: bufferToPlay = mechanicalBuffer
         case .mechanicalClicky: bufferToPlay = mechanicalClickyBuffer
         case .typewriter: bufferToPlay = typewriterBuffer
@@ -455,6 +485,12 @@ class AudioSynthesizer: ObservableObject {
         self.cherryMXRedBuffer = createClickBuffer(format: format, type: .cherryMXRed)
         self.topreBuffer = createClickBuffer(format: format, type: .topre)
         self.holyPandaBuffer = createClickBuffer(format: format, type: .holyPanda)
+        self.gateronBlackInkBuffer = createClickBuffer(format: format, type: .gateronBlackInk)
+        self.kailhBoxWhiteBuffer = createClickBuffer(format: format, type: .kailhBoxWhite)
+        self.zealiosV2Buffer = createClickBuffer(format: format, type: .zealiosV2)
+        self.alpacaLinearBuffer = createClickBuffer(format: format, type: .alpacaLinear)
+        self.novelKeysCreamBuffer = createClickBuffer(format: format, type: .novelKeysCream)
+        self.bucklingSpringBuffer = createClickBuffer(format: format, type: .bucklingSpring)
         
         self.mechanicalSpacebarBuffer = createClickBuffer(format: format, type: .mechanicalSpacebar)
         self.mechanicalEnterBuffer = createClickBuffer(format: format, type: .mechanicalEnter)
@@ -511,7 +547,7 @@ class AudioSynthesizer: ObservableObject {
         }
     }
     
-    enum SynthType { case cherryMXBlue, cherryMXBrown, cherryMXRed, topre, holyPanda, mechanicalSpacebar, mechanicalEnter, mechanicalKeyUp, mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
+    enum SynthType { case cherryMXBlue, cherryMXBrown, cherryMXRed, topre, holyPanda, gateronBlackInk, kailhBoxWhite, zealiosV2, alpacaLinear, novelKeysCream, bucklingSpring, mechanicalSpacebar, mechanicalEnter, mechanicalKeyUp, mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
     
     private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
         let sampleRate = format.sampleRate
@@ -522,6 +558,12 @@ class AudioSynthesizer: ObservableObject {
         case .cherryMXRed: duration = 0.04
         case .topre: duration = 0.06
         case .holyPanda: duration = 0.05
+        case .gateronBlackInk: duration = 0.05
+        case .kailhBoxWhite: duration = 0.04
+        case .zealiosV2: duration = 0.05
+        case .alpacaLinear: duration = 0.04
+        case .novelKeysCream: duration = 0.05
+        case .bucklingSpring: duration = 0.12
         case .mechanicalSpacebar: duration = 0.1
         case .mechanicalEnter: duration = 0.08
         case .mechanicalKeyUp: duration = 0.03
@@ -601,6 +643,50 @@ class AudioSynthesizer: ObservableObject {
                 let tactileBump = (Float(sin(2.0 * .pi * 1200.0 * t)) * 0.4 + noise * 0.2) * attackEnv
                 let thock = Float(sin(2.0 * .pi * 200.0 * t)) * bodyEnv
                 sample = (tactileBump * 0.8 + thock * 1.2) * 1.4
+            case .gateronBlackInk:
+                let attackEnv = Float(exp(-t * 300.0))
+                let bodyEnv = Float(exp(-t * 90.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let thock = Float(sin(2.0 * .pi * 140.0 * t)) * bodyEnv
+                let clack = noise * attackEnv * 0.15
+                sample = (thock * 1.4 + clack) * 1.3
+            case .kailhBoxWhite:
+                let attackEnv = Float(exp(-t * 3500.0))
+                let bodyEnv = Float(exp(-t * 200.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let sharpClick = (Float(sin(2.0 * .pi * 6000.0 * t)) * 0.7 + noise * 0.3) * attackEnv
+                let body = Float(sin(2.0 * .pi * 400.0 * t)) * bodyEnv
+                sample = (sharpClick * 1.8 + body * 0.6) * 1.2
+            case .zealiosV2:
+                let attackEnv = Float(exp(-t * 800.0))
+                let bodyEnv = Float(exp(-t * 150.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let crispBump = (Float(sin(2.0 * .pi * 1000.0 * t)) * 0.5 + noise * 0.2) * attackEnv
+                let body = Float(sin(2.0 * .pi * 200.0 * t)) * bodyEnv
+                sample = (crispBump * 1.2 + body * 1.0) * 1.3
+            case .alpacaLinear:
+                let attackEnv = Float(exp(-t * 500.0))
+                let bodyEnv = Float(exp(-t * 120.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let clack = (Float(sin(2.0 * .pi * 350.0 * t)) * 0.5 + noise * 0.2) * attackEnv
+                let body = Float(sin(2.0 * .pi * 180.0 * t)) * bodyEnv
+                sample = (clack * 1.0 + body * 0.8) * 1.2
+            case .novelKeysCream:
+                let attackEnv = Float(exp(-t * 400.0))
+                let bodyEnv = Float(exp(-t * 100.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let creamClack = (Float(sin(2.0 * .pi * 450.0 * t)) * 0.4 + noise * 0.2) * attackEnv
+                let deepBody = Float(sin(2.0 * .pi * 160.0 * t)) * bodyEnv
+                sample = (creamClack * 0.9 + deepBody * 1.1) * 1.3
+            case .bucklingSpring:
+                let attackEnv = Float(exp(-t * 2000.0))
+                let springEnv = Float(exp(-t * 40.0))
+                let bodyEnv = Float(exp(-t * 100.0))
+                let noise = Float.random(in: -1.0...1.0)
+                let metallicClick = (Float(sin(2.0 * .pi * 3000.0 * t)) * 0.6 + noise * 0.4) * attackEnv
+                let springRing = Float(sin(2.0 * .pi * 800.0 * t) + sin(2.0 * .pi * 820.0 * t)) * springEnv * 0.3
+                let body = Float(sin(2.0 * .pi * 200.0 * t)) * bodyEnv
+                sample = (metallicClick * 1.5 + springRing + body * 0.8) * 1.2
             case .mechanicalSpacebar:
                 let attackEnv = Float(exp(-t * 300.0))
                 let bodyEnv = Float(exp(-t * 50.0))
