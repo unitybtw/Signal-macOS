@@ -3,142 +3,41 @@ import CoreAudio
 import Combine
 import AppKit
 
-enum AudioTheme: String, CaseIterable {
-    case cherryMXBlue
-    case cherryMXBrown
-    case cherryMXRed
-    case topre
-    case holyPanda
-    case gateronBlackInk
-    case kailhBoxWhite
-    case zealiosV2
-    case alpacaLinear
-    case novelKeysCream
-    case bucklingSpring
-    case gateronYellow
-    case bobaU4T
-    case cherryMXBlack
-    case kailhBoxJade
-    case gateronOilKing
-    case akkoMatchaGreen
-    case kttKangWhite
-    case gloriousPanda
-    case dropHaloTrue
-    case c3Tangerine
-    case mechanical
-    case mechanicalClicky
-    case typewriter
-    case scifi
-    case arcade
-    case waterDrop
-    case glockenspiel
-    case woodenBlock
-    case vinylScratch
-    case bubblePop
-    case percussiveDjembe
-    case alienBlaster
-    case percussive808
-    case laserGun
-    case catMeow
-    case rainDrop
-    case digitalBeep
-    case retroPhone
-    case heartBeat
-    case spaceSweep
-    case cameraClick
-    case coinCollect
-    case thunderZap
-    case forestWind
-    case deepThud
-    case heavyMetal
-    case neonBeep
-    case natureWood
-    case subBass
-    case airRush
+class AudioSynthesizer: ObservableObject {
+    static let shared = AudioSynthesizer()
     
-    var displayName: String {
-        switch self {
-        case .cherryMXBlue: return "Cherry Blue"
-        case .cherryMXBrown: return "Cherry Brown"
-        case .cherryMXRed: return "Cherry Red"
-        case .topre: return "Topre"
-        case .holyPanda: return "Holy Panda"
-        case .gateronBlackInk: return "Black Ink"
-        case .kailhBoxWhite: return "Box White"
-        case .zealiosV2: return "Zealios V2"
-        case .alpacaLinear: return "Alpaca"
-        case .novelKeysCream: return "NK Cream"
-        case .bucklingSpring: return "Model M"
-        case .gateronYellow: return "Gat Yellow"
-        case .bobaU4T: return "Boba U4T"
-        case .cherryMXBlack: return "Cherry Black"
-        case .kailhBoxJade: return "Box Jade"
-        case .gateronOilKing: return "Oil King"
-        case .akkoMatchaGreen: return "Akko Matcha Green"
-        case .kttKangWhite: return "KTT Kang White"
-        case .gloriousPanda: return "Glorious Panda"
-        case .dropHaloTrue: return "Drop Halo True"
-        case .c3Tangerine: return "C3 Tangerine"
-        case .mechanical: return "Mechanical (Linear)"
-        case .mechanicalClicky: return "Mech (Clicky)"
-        case .typewriter: return "Typewriter"
-        case .scifi: return "Sci-Fi"
-        case .arcade: return "Arcade"
-        case .waterDrop: return "Water"
-        case .glockenspiel: return "Glock"
-        case .woodenBlock: return "Wood"
-        case .vinylScratch: return "Vinyl"
-        case .bubblePop: return "Bubble"
-        case .percussiveDjembe: return "Djembe"
-        case .alienBlaster: return "Alien"
-        case .percussive808: return "808"
-        case .laserGun: return "Laser"
-        case .catMeow: return "Meow"
-        case .rainDrop: return "Rain"
-        case .digitalBeep: return "Digital"
-        case .retroPhone: return "Phone"
-        case .heartBeat: return "Heart"
-        case .spaceSweep: return "Space"
-        case .cameraClick: return "Camera"
-        case .coinCollect: return "Coin"
-        case .thunderZap: return "Zap"
-        case .forestWind: return "Wind"
-        case .deepThud: return "Deep"
-        case .heavyMetal: return "Metal"
-        case .neonBeep: return "Neon"
-        case .natureWood: return "Forest"
-        case .subBass: return "Sub"
-        case .airRush: return "Rush"
+    @Published var selectedTheme: AudioTheme = .realNKCream {
+        didSet {
+            UserDefaults.standard.set(selectedTheme.rawValue, forKey: "SelectedAudioTheme")
         }
     }
-}
-
-class AudioSynthesizer: ObservableObject {
-    @Published var currentTheme: AudioTheme = AudioTheme(rawValue: UserDefaults.standard.string(forKey: "currentTheme") ?? "") ?? .mechanical {
-        didSet { UserDefaults.standard.set(currentTheme.rawValue, forKey: "currentTheme") }
+    
+    @Published var isMuted: Bool = false {
+        didSet {
+            UserDefaults.standard.set(isMuted, forKey: "IsMuted")
+        }
     }
-    @Published var isMuted: Bool = UserDefaults.standard.object(forKey: "isMuted") as? Bool ?? false {
-        didSet { UserDefaults.standard.set(isMuted, forKey: "isMuted") }
+    
+    @Published var volume: Double = 0.5 {
+        didSet {
+            UserDefaults.standard.set(volume, forKey: "Volume")
+            engine.mainMixerNode.outputVolume = Float(volume)
+        }
     }
-    @Published var isSmartMuteEnabled: Bool = UserDefaults.standard.object(forKey: "isSmartMuteEnabled") as? Bool ?? false {
-        didSet { UserDefaults.standard.set(isSmartMuteEnabled, forKey: "isSmartMuteEnabled") }
+    
+    @Published var hasPermission: Bool = false
+    @Published var isPopoverVisible: Bool = false
+    
+    @Published var isMouseSoundEnabled: Bool = false {
+        didSet { UserDefaults.standard.set(isMouseSoundEnabled, forKey: "IsMouseSoundEnabled") }
+    }
+    @Published var isSmartMuteEnabled: Bool = false {
+        didSet { UserDefaults.standard.set(isSmartMuteEnabled, forKey: "IsSmartMuteEnabled") }
+    }
+    @Published var isOrganicPitchEnabled: Bool = true {
+        didSet { UserDefaults.standard.set(isOrganicPitchEnabled, forKey: "IsOrganicPitchEnabled") }
     }
     @Published var isSmartMutedActive: Bool = false
-    @Published var isMouseSoundEnabled: Bool = UserDefaults.standard.object(forKey: "isMouseSoundEnabled") as? Bool ?? false {
-        didSet { UserDefaults.standard.set(isMouseSoundEnabled, forKey: "isMouseSoundEnabled") }
-    }
-
-    @Published var isPopoverVisible: Bool = false
-    @Published var isOrganicPitchEnabled: Bool = UserDefaults.standard.object(forKey: "isOrganicPitchEnabled") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(isOrganicPitchEnabled, forKey: "isOrganicPitchEnabled") }
-    }
-    @Published var hasPermission: Bool = AXIsProcessTrusted()
-    @Published var volume: Float = UserDefaults.standard.object(forKey: "volume") as? Float ?? 0.5 {
-        didSet {
-            UserDefaults.standard.set(volume, forKey: "volume")
-            engine.mainMixerNode.outputVolume = volume
-        }
-    }
     
     private let engine = AVAudioEngine()
     private let reverbNode = AVAudioUnitReverb()
@@ -156,151 +55,32 @@ class AudioSynthesizer: ObservableObject {
     
     private let audioQueue = DispatchQueue(label: "com.signal.audio", qos: .userInteractive)
 
-    // Synth Buffers
-    private var cherryMXBlueBuffer: AVAudioPCMBuffer?
-    private var cherryMXBrownBuffer: AVAudioPCMBuffer?
-    private var cherryMXRedBuffer: AVAudioPCMBuffer?
-    private var topreBuffer: AVAudioPCMBuffer?
-    private var holyPandaBuffer: AVAudioPCMBuffer?
-    private var gateronBlackInkBuffer: AVAudioPCMBuffer?
-    private var kailhBoxWhiteBuffer: AVAudioPCMBuffer?
-    private var zealiosV2Buffer: AVAudioPCMBuffer?
-    private var alpacaLinearBuffer: AVAudioPCMBuffer?
-    private var novelKeysCreamBuffer: AVAudioPCMBuffer?
-    private var bucklingSpringBuffer: AVAudioPCMBuffer?
-    private var gateronYellowBuffer: AVAudioPCMBuffer?
-    private var bobaU4TBuffer: AVAudioPCMBuffer?
-    private var cherryMXBlackBuffer: AVAudioPCMBuffer?
-    private var kailhBoxJadeBuffer: AVAudioPCMBuffer?
-    private var gateronOilKingBuffer: AVAudioPCMBuffer?
-    private var akkoMatchaGreenBuffer: AVAudioPCMBuffer?
-    private var kttKangWhiteBuffer: AVAudioPCMBuffer?
-    private var gloriousPandaBuffer: AVAudioPCMBuffer?
-    private var dropHaloTrueBuffer: AVAudioPCMBuffer?
-    private var c3TangerineBuffer: AVAudioPCMBuffer?
-    
-    // Dedicated Modifiers
-    private var mechanicalSpacebarBuffer: AVAudioPCMBuffer?
-    private var mechanicalEnterBuffer: AVAudioPCMBuffer?
-    private var mechanicalKeyUpBuffer: AVAudioPCMBuffer?
-    
-    private var mechanicalBuffer: AVAudioPCMBuffer?
-    private var mechanicalClickyBuffer: AVAudioPCMBuffer?
-    private var typewriterBuffer: AVAudioPCMBuffer?
-    private var scifiBuffer: AVAudioPCMBuffer?
-    private var arcadeBuffer: AVAudioPCMBuffer?
-    private var waterDropBuffer: AVAudioPCMBuffer?
-    private var glockenspielBuffer: AVAudioPCMBuffer?
-    private var woodenBlockBuffer: AVAudioPCMBuffer?
-    private var vinylScratchBuffer: AVAudioPCMBuffer?
-    private var bubblePopBuffer: AVAudioPCMBuffer?
-    private var percussiveDjembeBuffer: AVAudioPCMBuffer?
-    private var alienBlasterBuffer: AVAudioPCMBuffer?
-    private var percussive808Buffer: AVAudioPCMBuffer?
-    private var laserGunBuffer: AVAudioPCMBuffer?
-    private var catMeowBuffer: AVAudioPCMBuffer?
-    private var rainDropBuffer: AVAudioPCMBuffer?
-    private var digitalBeepBuffer: AVAudioPCMBuffer?
-    private var retroPhoneBuffer: AVAudioPCMBuffer?
-    private var heartBeatBuffer: AVAudioPCMBuffer?
-    private var spaceSweepBuffer: AVAudioPCMBuffer?
-    private var cameraClickBuffer: AVAudioPCMBuffer?
-    private var coinCollectBuffer: AVAudioPCMBuffer?
-    private var thunderZapBuffer: AVAudioPCMBuffer?
-    private var forestWindBuffer: AVAudioPCMBuffer?
-    private var deepThudBuffer: AVAudioPCMBuffer?
-    private var heavyMetalBuffer: AVAudioPCMBuffer?
-    private var neonBeepBuffer: AVAudioPCMBuffer?
-    private var natureWoodBuffer: AVAudioPCMBuffer?
-    private var subBassBuffer: AVAudioPCMBuffer?
-    private var airRushBuffer: AVAudioPCMBuffer?
-    
-    private var permissionTimer: Timer?
+    private var soundPacks: [AudioTheme: SoundPack] = [:]
     
     init() {
+        if let savedThemeRaw = UserDefaults.standard.string(forKey: "SelectedAudioTheme"),
+           let savedTheme = AudioTheme(rawValue: savedThemeRaw) {
+            self.selectedTheme = savedTheme
+        }
+        self.isMuted = UserDefaults.standard.bool(forKey: "IsMuted")
+        
+        if UserDefaults.standard.object(forKey: "Volume") != nil {
+            self.volume = UserDefaults.standard.double(forKey: "Volume")
+        }
+        
         setupEngine()
-        generateSynthBuffers()
-        
-        // Sadece izin yoksa zamanlayıcıyı başlat, izni alınca iptal et
-        self.hasPermission = AXIsProcessTrusted()
-        if !self.hasPermission {
-            permissionTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-                self?.checkPermission()
-            }
-        }
-        
-        // --- Uygulama Açılış Sesi ---
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            self.playStartupSound()
-        }
-        
-        // Ses aygıtı (kulaklık takma/çıkarma) değiştiğinde motoru otomatik yeniden başlat
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleAudioConfigurationChange),
-            name: .AVAudioEngineConfigurationChange,
-            object: engine
-        )
-    }
-    
-    @objc private func handleAudioConfigurationChange(notification: Notification) {
-        print("AudioEngine: Çıkış aygıtı değişti. Motor yeniden başlatılıyor...")
-        audioQueue.async { [weak self] in
-            guard let self = self else { return }
-            do {
-                if self.engine.isRunning {
-                    self.engine.pause()
-                }
-                try self.engine.start()
-                for channel in self.channels {
-                    if !channel.player.isPlaying {
-                        channel.player.play()
-                    }
-                }
-                print("AudioEngine: Aygıt değişikliği sonrası başarıyla yeniden başlatıldı.")
-            } catch {
-                print("AudioEngine Yeniden Başlatma Hatası: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    func checkPermission() {
-        let status = AXIsProcessTrusted()
-        if status != self.hasPermission {
-            self.hasPermission = status
-            if status {
-                self.permissionTimer?.invalidate()
-                self.permissionTimer = nil
-                NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
-            }
-        }
-    }
-    
-    private func playStartupSound() {
-        guard let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false) else { return }
-        
-        // 0.4 saniyelik bir siber-açılış bip sesi
-        let duration: Double = 0.4
-        let frameCount = AVAudioFrameCount(format.sampleRate * duration)
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return }
-        buffer.frameLength = frameCount
-        guard let channelData = buffer.floatChannelData?[0] else { return }
-        
-        for i in 0..<Int(frameCount) {
-            let t = Double(i) / format.sampleRate
-            let env = Float(exp(-t * 20.0))
-            // frekans yükselen bir (pew) sese doğru gitse havalı olur
-            let freq = 440.0 + 800.0 * (t / duration)
-            channelData[i] = Float(sin(2.0 * .pi * freq * t)) * env * 0.4
-        }
-        
-        let channel = channels[0]
-        channel.player.scheduleBuffer(buffer, at: nil, options: .interrupts)
-        if !channel.player.isPlaying { channel.player.play() }
+        loadAllPacks()
     }
     
     private func setupEngine() {
-        let monoFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false)
+        _ = engine.mainMixerNode
+        
+        reverbNode.loadFactoryPreset(.largeHall)
+        reverbNode.wetDryMix = 0
+        engine.attach(reverbNode)
+        
+        engine.connect(engine.mainMixerNode, to: reverbNode, format: nil)
+        engine.connect(reverbNode, to: engine.outputNode, format: nil)
         
         for _ in 0..<channelCount {
             let player = AVAudioPlayerNode()
@@ -311,806 +91,140 @@ class AudioSynthesizer: ObservableObject {
             engine.attach(pitch)
             engine.attach(mixer)
             
-            if let mono = monoFormat {
-                engine.connect(player, to: pitch, format: mono)
-                engine.connect(pitch, to: mixer, format: mono)
-                engine.connect(mixer, to: engine.mainMixerNode, format: mono)
-            }
+            engine.connect(player, to: pitch, format: nil)
+            engine.connect(pitch, to: mixer, format: nil)
+            engine.connect(mixer, to: engine.mainMixerNode, format: nil)
             
             channels.append(SynthChannel(player: player, pitch: pitch, mixer: mixer))
         }
         
-        reverbNode.loadFactoryPreset(.largeHall)
-        reverbNode.wetDryMix = 0.0
-        engine.attach(reverbNode)
+        engine.mainMixerNode.outputVolume = Float(volume)
         
-        let outputFormat = engine.outputNode.inputFormat(forBus: 0)
-        engine.connect(engine.mainMixerNode, to: reverbNode, format: outputFormat)
-        engine.connect(reverbNode, to: engine.outputNode, format: outputFormat)
+        do {
+            try engine.start()
+        } catch {
+            print("AudioEngine start error: \(error)")
+        }
+    }
+    
+    private func loadAllPacks() {
+        let format = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 1)!
+        for theme in AudioTheme.allCases {
+            if let pack = SoundPack.load(folderName: theme.folderName, format: format) {
+                soundPacks[theme] = pack
+            }
+        }
+    }
+    
+    func playKeySound(keyCode: Int64, isDown: Bool = true) {
+        if isMuted { return }
         
-        engine.mainMixerNode.outputVolume = volume
+        audioQueue.async {
+            guard let pack = self.soundPacks[self.selectedTheme] else { return }
+            let buffer: AVAudioPCMBuffer
+            
+            if isDown {
+                switch keyCode {
+                case 49: buffer = pack.space ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                case 36: buffer = pack.enter ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                case 51: buffer = pack.backspace ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                default:
+                    // Randomize slightly between generic rows if they exist
+                    let rand = Int.random(in: 0...4)
+                    switch rand {
+                    case 0: buffer = pack.genericR0 ?? AVAudioPCMBuffer()
+                    case 1: buffer = pack.genericR1 ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                    case 2: buffer = pack.genericR2 ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                    case 3: buffer = pack.genericR3 ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                    case 4: buffer = pack.genericR4 ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                    default: buffer = pack.genericR0 ?? AVAudioPCMBuffer()
+                    }
+                }
+            } else {
+                // Key Up
+                switch keyCode {
+                case 49: buffer = pack.releaseSpace ?? pack.releaseGeneric ?? pack.space ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                case 36: buffer = pack.releaseEnter ?? pack.releaseGeneric ?? pack.enter ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                case 51: buffer = pack.releaseBackspace ?? pack.releaseGeneric ?? pack.backspace ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                default: buffer = pack.releaseGeneric ?? pack.genericR0 ?? AVAudioPCMBuffer()
+                }
+            }
+            
+            // Empty buffer check
+            guard buffer.frameLength > 0 else { return }
+            
+            let channel = self.channels[self.currentChannelIndex]
+            self.currentChannelIndex = (self.currentChannelIndex + 1) % self.channelCount
+            
+            // Reverb / Pitch Effects
+            DispatchQueue.main.async {
+                self.updateReverbEffect()
+                let wpm = self.calculateWPM()
+                let isComboMode = wpm > 100
+                
+                channel.pitch.pitch = isComboMode ? 1.0 : (isDown ? 0.0 : -100.0)
+                channel.mixer.volume = (isComboMode ? 1.2 : 1.0) * (isDown ? 1.0 : 0.6)
+                
+                // Spatial Pan
+                if keyCode < 128 {
+                    let pan = self.getPanForKey(keyCode)
+                    channel.mixer.pan = Float(pan)
+                }
+            }
+            
+            channel.player.scheduleBuffer(buffer, at: nil, options: .interrupts)
+            
+            if !channel.player.isPlaying {
+                channel.player.play()
+            }
+        }
+    }
+    
+    private func updateReverbEffect() {
+        let now = Date()
+        recentKeyTimestamps.append(now)
+        recentKeyTimestamps.removeAll { now.timeIntervalSince($0) > 2.0 }
+        
+        let wpm = calculateWPM()
+        let isComboMode = wpm > 100
+        
+        let targetWetDryMix: Float = isComboMode ? Float(min((wpm - 100) * 0.8, 40.0)) : 0.0
+        
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.2
+            context.allowsImplicitAnimation = true
+            self.reverbNode.wetDryMix = targetWetDryMix
+        }
+    }
+    
+    private func calculateWPM() -> Double {
+        guard recentKeyTimestamps.count >= 2 else { return 0 }
+        let timeSpan = recentKeyTimestamps.last!.timeIntervalSince(recentKeyTimestamps.first!)
+        if timeSpan == 0 { return 0 }
+        
+        let cpm = Double(recentKeyTimestamps.count) / (timeSpan / 60.0)
+        return cpm / 5.0
+    }
+    
+    private func getPanForKey(_ keyCode: Int64) -> Float {
+        let leftKeys: Set<Int64> = [12, 13, 0, 1, 6, 7, 18, 19, 20, 21, 53, 48, 50, 56, 59]
+        let rightKeys: Set<Int64> = [35, 33, 30, 31, 32, 34, 40, 38, 42, 43, 46, 45, 36, 51, 60]
+        
+        if leftKeys.contains(keyCode) { return -0.4 }
+        if rightKeys.contains(keyCode) { return 0.4 }
+        return 0.0
     }
     
     func start() {
-        do {
-            try engine.start()
-            print("AudioEngine: Sentezleyici başlatıldı.")
-            
-            // PRE-WARM OPTIMIZATION:
-            // Oynatıcıları motor başladıktan hemen sonra çalıştırıp "sürekli aktif" tutuyoruz.
-            // Bu sayede tuşa basıldığında AVAudioPlayerNode uyanmak için zaman kaybetmez (Sıfır Gecikme).
-            for channel in channels {
-                if !channel.player.isPlaying {
-                    channel.player.play()
-                }
-            }
-        } catch {
-            print("AudioEngine Hata: \(error.localizedDescription)")
-        }
-    }
-    
-    func setTheme(_ theme: AudioTheme) {
-        currentTheme = theme
-        // --- Tema Önizleme Sesi ---
-        // Picker değiştiğinde kullanıcıya yeni sesin bir örneğini çal
-        playKeySound()
-    }
-    
-    private func getBuffer(for theme: AudioTheme) -> AVAudioPCMBuffer? {
-        switch theme {
-        case .cherryMXBlue: return self.cherryMXBlueBuffer
-        case .cherryMXBrown: return self.cherryMXBrownBuffer
-        case .cherryMXRed: return self.cherryMXRedBuffer
-        case .topre: return self.topreBuffer
-        case .holyPanda: return self.holyPandaBuffer
-        case .gateronBlackInk: return self.gateronBlackInkBuffer
-        case .kailhBoxWhite: return self.kailhBoxWhiteBuffer
-        case .zealiosV2: return self.zealiosV2Buffer
-        case .alpacaLinear: return self.alpacaLinearBuffer
-        case .novelKeysCream: return self.novelKeysCreamBuffer
-        case .bucklingSpring: return self.bucklingSpringBuffer
-        case .gateronYellow: return self.gateronYellowBuffer
-        case .bobaU4T: return self.bobaU4TBuffer
-        case .cherryMXBlack: return self.cherryMXBlackBuffer
-        case .kailhBoxJade: return self.kailhBoxJadeBuffer
-        case .gateronOilKing: return self.gateronOilKingBuffer
-        case .akkoMatchaGreen: return akkoMatchaGreenBuffer
-        case .kttKangWhite: return kttKangWhiteBuffer
-        case .gloriousPanda: return gloriousPandaBuffer
-        case .dropHaloTrue: return dropHaloTrueBuffer
-        case .c3Tangerine: return c3TangerineBuffer
-        
-        case .mechanical: return self.mechanicalBuffer
-        case .mechanicalClicky: return self.mechanicalClickyBuffer
-        case .typewriter: return self.typewriterBuffer
-        case .scifi: return self.scifiBuffer
-        case .arcade: return self.arcadeBuffer
-        case .waterDrop: return self.waterDropBuffer
-        case .glockenspiel: return self.glockenspielBuffer
-        case .woodenBlock: return self.woodenBlockBuffer
-        case .vinylScratch: return self.vinylScratchBuffer
-        case .bubblePop: return self.bubblePopBuffer
-        case .percussiveDjembe: return self.percussiveDjembeBuffer
-        case .alienBlaster: return self.alienBlasterBuffer
-        case .percussive808: return self.percussive808Buffer
-        case .laserGun: return self.laserGunBuffer
-        case .catMeow: return self.catMeowBuffer
-        case .rainDrop: return self.rainDropBuffer
-        case .digitalBeep: return self.digitalBeepBuffer
-        case .retroPhone: return self.retroPhoneBuffer
-        case .heartBeat: return self.heartBeatBuffer
-        case .spaceSweep: return self.spaceSweepBuffer
-        case .cameraClick: return self.cameraClickBuffer
-        case .coinCollect: return self.coinCollectBuffer
-        case .thunderZap: return self.thunderZapBuffer
-        case .forestWind: return self.forestWindBuffer
-        case .deepThud: return self.deepThudBuffer
-        case .heavyMetal: return self.heavyMetalBuffer
-        case .neonBeep: return self.neonBeepBuffer
-        case .natureWood: return self.natureWoodBuffer
-        case .subBass: return self.subBassBuffer
-        case .airRush: return self.airRushBuffer
-        }
+        // Zaten init içinde başlıyor ama uyumluluk için
     }
     
     func playMouseSound(isLeft: Bool, isDown: Bool, location: CGPoint) {
-        guard engine.isRunning && !isMuted && isMouseSoundEnabled else { return }
-        if isSmartMuteEnabled && isSmartMutedActive { return }
-        
-        let screenWidth = NSScreen.main?.frame.width ?? 1920.0
-        
-        audioQueue.async { [weak self] in
-            guard let self = self else { return }
-            guard let pcmBuffer = self.getBuffer(for: self.currentTheme) else { return }
-            
-            let channel = self.channels[self.currentChannelIndex]
-            self.currentChannelIndex = (self.currentChannelIndex + 1) % self.channelCount
-            
-            var pan: Float = 0.0
-            let normalizedX = Float(location.x / screenWidth)
-            pan = (normalizedX * 2.0 - 1.0) * 0.6
-            
-            var basePitch = isLeft ? Float(1200) : Float(900)
-            var volumeModifier: Float = 0.4
-            
-            // Unclick sound should have higher pitch and lower volume
-            if !isDown {
-                basePitch += 600
-                volumeModifier *= 0.5
-            }
-            
-            if self.isOrganicPitchEnabled {
-                channel.pitch.pitch = basePitch + Float.random(in: -50...50)
-                channel.player.volume = volumeModifier * Float.random(in: 0.9...1.1)
-            } else {
-                channel.pitch.pitch = basePitch
-                channel.player.volume = volumeModifier
-            }
-            
-            channel.mixer.pan = pan
-            
-            channel.player.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
-            if !channel.player.isPlaying {
-                channel.player.play()
-            }
-        }
+        // Fare sesi istenirse ileride eklenebilir
     }
     
-    func playKeySound(keyCode: Int64 = 0, isDown: Bool = true) {
-        guard engine.isRunning && !isMuted else { return }
-        if isSmartMuteEnabled && isSmartMutedActive { return }
-        
-        audioQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            var bufferToPlay: AVAudioPCMBuffer? = self.getBuffer(for: self.currentTheme)
-            guard let pcmBuffer = bufferToPlay else { return }
-            
-            var basePitch: Float = 0
-            var volumeModifier: Float = 1.0
-            
-            switch keyCode {
-            case 49: // Space
-                if self.currentTheme == .mechanical || self.currentTheme == .cherryMXRed || self.currentTheme == .cherryMXBrown || self.currentTheme == .topre || self.currentTheme == .holyPanda {
-                    bufferToPlay = self.mechanicalSpacebarBuffer
-                }
-                basePitch = -150
-                volumeModifier = 1.3
-            case 36: // Return
-                if self.currentTheme == .mechanical || self.currentTheme == .cherryMXRed || self.currentTheme == .cherryMXBrown || self.currentTheme == .topre || self.currentTheme == .holyPanda {
-                    bufferToPlay = self.mechanicalEnterBuffer
-                }
-                basePitch = -100
-                volumeModifier = 1.2
-            case 51: // Backspace
-                basePitch = 150
-                volumeModifier = 0.9
-            case 48: // Tab
-                basePitch = 200
-            case 53: // Esc
-                basePitch = -400
-            case 0, 14, 34, 31, 32: // A, E, I, O, U (Vowels)
-                basePitch = 80 // Slightly higher pitch for vowels for musicality
-                volumeModifier = 1.05
-            default:
-                break
-            }
-            
-            let finalBuffer = bufferToPlay ?? pcmBuffer
-            
-            if !isDown {
-                if self.currentTheme == .mechanical || self.currentTheme == .cherryMXRed || self.currentTheme == .cherryMXBrown || self.currentTheme == .topre || self.currentTheme == .holyPanda || self.currentTheme == .cherryMXBlue {
-                    bufferToPlay = self.mechanicalKeyUpBuffer
-                } else {
-                    basePitch += 600
-                }
-                volumeModifier *= 0.3
-            }
-            
-            if isDown {
-                let now = Date()
-                self.recentKeyTimestamps.append(now)
-                self.recentKeyTimestamps.removeAll { now.timeIntervalSince($0) > 2.0 }
-                
-                let wpmApprox = Double(self.recentKeyTimestamps.count) * 30.0 / 5.0
-                let momentum = min(wpmApprox / 120.0, 1.0)
-                
-                if wpmApprox >= 100.0 {
-                    // COMBO MODE (Fire Mode): Aggressive pitch, volume scaling and REVERB
-                    volumeModifier *= Float(1.0 + (momentum * 0.4))
-                    basePitch += Float(momentum * 250.0)
-                    
-                    let targetReverb = Float(min((wpmApprox - 100.0) * 1.5, 40.0)) // Max 40% reverb
-                    self.reverbNode.wetDryMix = targetReverb
-                } else {
-                    volumeModifier *= Float(1.0 + (momentum * 0.2))
-                    basePitch += Float(momentum * 150.0)
-                    
-                    if self.reverbNode.wetDryMix > 0 {
-                        self.reverbNode.wetDryMix = max(self.reverbNode.wetDryMix - 5.0, 0)
-                    }
-                }
-            }
-            
-            // macOS Virtual Key Codes -> X Position (-1.0 to 1.0)
-            let keyMap: [Int64: Float] = [
-                // Row 1 (Numbers)
-                50: -0.9, 18: -0.8, 19: -0.7, 20: -0.5, 21: -0.4, 23: -0.3, 22: -0.1, 26: 0.1, 28: 0.2, 25: 0.3, 29: 0.5, 27: 0.6, 24: 0.8, 51: 0.9,
-                // Row 2 (QWERTY)
-                48: -0.9, 12: -0.75, 13: -0.6, 14: -0.45, 15: -0.3, 17: -0.15, 16: 0.0, 32: 0.15, 34: 0.3, 31: 0.45, 35: 0.6, 33: 0.75, 30: 0.85, 42: 0.9,
-                // Row 3 (ASDF)
-                53: -1.0, 0: -0.7, 1: -0.55, 2: -0.4, 3: -0.25, 5: -0.1, 4: 0.05, 38: 0.2, 40: 0.35, 37: 0.5, 41: 0.65, 39: 0.8, 36: 0.9,
-                // Row 4 (ZXCV)
-                56: -0.9, 6: -0.65, 7: -0.5, 8: -0.35, 9: -0.2, 11: -0.05, 45: 0.1, 46: 0.25, 43: 0.4, 47: 0.55, 44: 0.7, 60: 0.9,
-                // Row 5 (Space, Command, Option, Control)
-                49: 0.0, 59: -0.8, 58: -0.7, 55: -0.6, 54: 0.6, 61: 0.7
-            ]
-            
-            var panValue: Float = 0.0
-            if let exactPan = keyMap[keyCode] {
-                panValue = exactPan + Float.random(in: -0.05...0.05)
-            } else {
-                panValue = Float.random(in: -0.15...0.15)
-            }
-            
-            let channel = self.channels[self.currentChannelIndex]
-            self.currentChannelIndex = (self.currentChannelIndex + 1) % self.channelCount
-            
-            if self.isOrganicPitchEnabled {
-                channel.pitch.pitch = basePitch + Float.random(in: -80...80)
-                channel.player.volume = volumeModifier * Float.random(in: 0.8...1.1)
-            } else {
-                channel.pitch.pitch = basePitch
-                channel.player.volume = volumeModifier
-            }
-            
-            channel.mixer.pan = panValue
-            
-            channel.player.scheduleBuffer(bufferToPlay ?? finalBuffer, at: nil, options: .interrupts)
-            
-            if !channel.player.isPlaying {
-                channel.player.play()
-            }
-        }
-    }
-
-    
-    private func generateSynthBuffers() {
-        guard let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 44100, channels: 1, interleaved: false) else { return }
-        
-        self.cherryMXBlueBuffer = createClickBuffer(format: format, type: .cherryMXBlue)
-        self.cherryMXBrownBuffer = createClickBuffer(format: format, type: .cherryMXBrown)
-        self.cherryMXRedBuffer = createClickBuffer(format: format, type: .cherryMXRed)
-        self.topreBuffer = createClickBuffer(format: format, type: .topre)
-        self.holyPandaBuffer = createClickBuffer(format: format, type: .holyPanda)
-        self.gateronBlackInkBuffer = createClickBuffer(format: format, type: .gateronBlackInk)
-        self.kailhBoxWhiteBuffer = createClickBuffer(format: format, type: .kailhBoxWhite)
-        self.zealiosV2Buffer = createClickBuffer(format: format, type: .zealiosV2)
-        self.alpacaLinearBuffer = createClickBuffer(format: format, type: .alpacaLinear)
-        self.novelKeysCreamBuffer = createClickBuffer(format: format, type: .novelKeysCream)
-        self.bucklingSpringBuffer = createClickBuffer(format: format, type: .bucklingSpring)
-        self.gateronYellowBuffer = createClickBuffer(format: format, type: .gateronYellow)
-        self.bobaU4TBuffer = createClickBuffer(format: format, type: .bobaU4T)
-        self.cherryMXBlackBuffer = createClickBuffer(format: format, type: .cherryMXBlack)
-        self.kailhBoxJadeBuffer = createClickBuffer(format: format, type: .kailhBoxJade)
-        self.gateronOilKingBuffer = createClickBuffer(format: format, type: .gateronOilKing)
-        
-        self.akkoMatchaGreenBuffer = createClickBuffer(format: format, type: .akkoMatchaGreen)
-        self.kttKangWhiteBuffer = createClickBuffer(format: format, type: .kttKangWhite)
-        self.gloriousPandaBuffer = createClickBuffer(format: format, type: .gloriousPanda)
-        self.dropHaloTrueBuffer = createClickBuffer(format: format, type: .dropHaloTrue)
-        self.c3TangerineBuffer = createClickBuffer(format: format, type: .c3Tangerine)
-        
-        self.mechanicalSpacebarBuffer = createClickBuffer(format: format, type: .mechanicalSpacebar)
-        self.mechanicalEnterBuffer = createClickBuffer(format: format, type: .mechanicalEnter)
-        self.mechanicalKeyUpBuffer = createClickBuffer(format: format, type: .mechanicalKeyUp)
-        
-        self.mechanicalBuffer = loadAudioFile(name: "mechanical", format: format) ?? createClickBuffer(format: format, type: .mechanical)
-        self.mechanicalClickyBuffer = createClickBuffer(format: format, type: .mechanicalClicky)
-        self.typewriterBuffer = loadAudioFile(name: "typewriter", format: format) ?? createClickBuffer(format: format, type: .typewriter)
-        self.scifiBuffer = createClickBuffer(format: format, type: .scifi)
-        self.arcadeBuffer = createClickBuffer(format: format, type: .arcade)
-        self.waterDropBuffer = createClickBuffer(format: format, type: .waterDrop)
-        self.glockenspielBuffer = createClickBuffer(format: format, type: .glockenspiel)
-        self.woodenBlockBuffer = createClickBuffer(format: format, type: .woodenBlock)
-        self.vinylScratchBuffer = createClickBuffer(format: format, type: .vinylScratch)
-        self.bubblePopBuffer = createClickBuffer(format: format, type: .bubblePop)
-        self.percussiveDjembeBuffer = createClickBuffer(format: format, type: .percussiveDjembe)
-        self.alienBlasterBuffer = createClickBuffer(format: format, type: .alienBlaster)
-        self.percussive808Buffer = createClickBuffer(format: format, type: .percussive808)
-        self.laserGunBuffer = createClickBuffer(format: format, type: .laserGun)
-        self.catMeowBuffer = createClickBuffer(format: format, type: .catMeow)
-        self.rainDropBuffer = createClickBuffer(format: format, type: .rainDrop)
-        self.digitalBeepBuffer = createClickBuffer(format: format, type: .digitalBeep)
-        self.retroPhoneBuffer = createClickBuffer(format: format, type: .retroPhone)
-        self.heartBeatBuffer = createClickBuffer(format: format, type: .heartBeat)
-        self.spaceSweepBuffer = createClickBuffer(format: format, type: .spaceSweep)
-        self.cameraClickBuffer = createClickBuffer(format: format, type: .cameraClick)
-        self.coinCollectBuffer = createClickBuffer(format: format, type: .coinCollect)
-        self.thunderZapBuffer = createClickBuffer(format: format, type: .thunderZap)
-        self.forestWindBuffer = createClickBuffer(format: format, type: .forestWind)
-        self.deepThudBuffer = createClickBuffer(format: format, type: .deepThud)
-        self.heavyMetalBuffer = createClickBuffer(format: format, type: .heavyMetal)
-        self.neonBeepBuffer = createClickBuffer(format: format, type: .neonBeep)
-        self.natureWoodBuffer = createClickBuffer(format: format, type: .natureWood)
-        self.subBassBuffer = createClickBuffer(format: format, type: .subBass)
-        self.airRushBuffer = createClickBuffer(format: format, type: .airRush)
-    }
-    
-    private func loadAudioFile(name: String, format: AVAudioFormat) -> AVAudioPCMBuffer? {
-        guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds"),
-              let file = try? AVAudioFile(forReading: url) else {
-            return nil
-        }
-        
-        let frameCount = AVAudioFrameCount(file.length)
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
-            return nil
-        }
-        
-        do {
-            try file.read(into: buffer)
-            return buffer
-        } catch {
-            return nil
-        }
-    }
-    enum SynthType { case cherryMXBlue, cherryMXBrown, cherryMXRed, topre, holyPanda, gateronBlackInk, kailhBoxWhite, zealiosV2, alpacaLinear, novelKeysCream, bucklingSpring, gateronYellow, bobaU4T, cherryMXBlack, kailhBoxJade, gateronOilKing, akkoMatchaGreen, kttKangWhite, gloriousPanda, dropHaloTrue, c3Tangerine, mechanicalSpacebar, mechanicalEnter, mechanicalKeyUp, mechanical, mechanicalClicky, typewriter, scifi, arcade, waterDrop, glockenspiel, woodenBlock, vinylScratch, bubblePop, percussiveDjembe, alienBlaster, percussive808, laserGun, catMeow, rainDrop, digitalBeep, retroPhone, heartBeat, spaceSweep, cameraClick, coinCollect, thunderZap, forestWind, deepThud, heavyMetal, neonBeep, natureWood, subBass, airRush }
-    private func createClickBuffer(format: AVAudioFormat, type: SynthType) -> AVAudioPCMBuffer? {
-        let sampleRate = format.sampleRate
-        let duration: Double
-        switch type {
-        case .cherryMXBlue: duration = 0.05
-        case .cherryMXBrown: duration = 0.05
-        case .cherryMXRed: duration = 0.04
-        case .topre: duration = 0.06
-        case .holyPanda: duration = 0.05
-        case .gateronBlackInk: duration = 0.05
-        case .kailhBoxWhite: duration = 0.04
-        case .zealiosV2: duration = 0.05
-        case .alpacaLinear: duration = 0.04
-        case .novelKeysCream: duration = 0.05
-        case .bucklingSpring: duration = 0.12
-        case .gateronYellow: duration = 0.045
-        case .bobaU4T: duration = 0.06
-        case .cherryMXBlack: duration = 0.05
-        case .kailhBoxJade: duration = 0.055
-        case .gateronOilKing: duration = 0.05
-        case .akkoMatchaGreen: duration = 0.05
-        case .kttKangWhite: duration = 0.045
-        case .gloriousPanda: duration = 0.055
-        case .dropHaloTrue: duration = 0.05
-        case .c3Tangerine: duration = 0.04
-        case .mechanicalSpacebar: duration = 0.1
-        case .mechanicalEnter: duration = 0.08
-        case .mechanicalKeyUp: duration = 0.03
-        case .mechanical: duration = 0.04
-        case .mechanicalClicky: duration = 0.04
-        case .typewriter: duration = 0.08
-        case .scifi:      duration = 0.06
-        case .arcade:     duration = 0.08
-        case .waterDrop:  duration = 0.06
-        case .glockenspiel: duration = 0.12
-        case .woodenBlock: duration = 0.05
-        case .vinylScratch: duration = 0.08
-        case .bubblePop: duration = 0.05
-        case .percussiveDjembe: duration = 0.08
-        case .alienBlaster: duration = 0.10
-        case .percussive808: duration = 0.20
-        case .laserGun: duration = 0.15
-        case .catMeow: duration = 0.25
-        case .rainDrop: duration = 0.05
-        case .digitalBeep: duration = 0.04
-        case .retroPhone: duration = 0.12
-        case .heartBeat: duration = 0.20
-        case .spaceSweep: duration = 0.30
-        case .cameraClick: duration = 0.04
-        case .coinCollect: duration = 0.15
-        case .thunderZap: duration = 0.08
-        case .forestWind: duration = 0.20
-        case .deepThud: duration = 0.12
-        case .heavyMetal: duration = 0.15
-        case .neonBeep: duration = 0.04
-        case .natureWood: duration = 0.10
-        case .subBass: duration = 0.25
-        case .airRush: duration = 0.08
-        }
-        
-        let frameCount = AVAudioFrameCount(sampleRate * duration)
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return nil }
-        buffer.frameLength = frameCount
-        guard let channelData = buffer.floatChannelData?[0] else { return nil }
-        
-        for i in 0..<Int(frameCount) {
-            let t = Double(i) / sampleRate
-            var sample: Float = 0.0
-            
-            switch type {
-            case .cherryMXBlue:
-                let attackEnv = Float(exp(-t * 2000.0))
-                let bodyEnv = Float(exp(-t * 150.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let click = (Float(sin(2.0 * .pi * 4500.0 * t)) * 0.6 + noise * 0.4) * attackEnv
-                let body = Float(sin(2.0 * .pi * 300.0 * t)) * bodyEnv
-                sample = (click * 1.5 + body * 0.5) * 1.3
-            case .cherryMXBrown:
-                let attackEnv = Float(exp(-t * 600.0))
-                let bodyEnv = Float(exp(-t * 200.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let bump = (Float(sin(2.0 * .pi * 800.0 * t)) * 0.5 + noise * 0.2) * attackEnv
-                let body = Float(sin(2.0 * .pi * 220.0 * t)) * bodyEnv
-                sample = (bump * 1.0 + body * 0.8) * 1.4
-            case .cherryMXRed:
-                let attackEnv = Float(exp(-t * 400.0))
-                let bodyEnv = Float(exp(-t * 120.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let linearHit = noise * attackEnv * 0.3
-                let body = Float(sin(2.0 * .pi * 180.0 * t)) * bodyEnv
-                sample = (linearHit + body * 0.9) * 1.2
-            case .topre:
-                let attackEnv = Float(exp(-t * 800.0))
-                let bodyEnv = Float(exp(-t * 100.0))
-                let thock = Float(sin(2.0 * .pi * 150.0 * t)) * bodyEnv
-                let domeCollapse = Float(sin(2.0 * .pi * 400.0 * t)) * attackEnv
-                sample = (thock * 1.0 + domeCollapse * 0.4) * 1.5
-            case .holyPanda:
-                let attackEnv = Float(exp(-t * 1000.0))
-                let bodyEnv = Float(exp(-t * 180.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let tactileBump = (Float(sin(2.0 * .pi * 1200.0 * t)) * 0.4 + noise * 0.2) * attackEnv
-                let thock = Float(sin(2.0 * .pi * 200.0 * t)) * bodyEnv
-                sample = (tactileBump * 0.8 + thock * 1.2) * 1.4
-            case .gateronBlackInk:
-                let attackEnv = Float(exp(-t * 300.0))
-                let bodyEnv = Float(exp(-t * 90.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let thock = Float(sin(2.0 * .pi * 140.0 * t)) * bodyEnv
-                let clack = noise * attackEnv * 0.15
-                sample = (thock * 1.4 + clack) * 1.3
-            case .kailhBoxWhite:
-                let attackEnv = Float(exp(-t * 3500.0))
-                let bodyEnv = Float(exp(-t * 200.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let sharpClick = (Float(sin(2.0 * .pi * 6000.0 * t)) * 0.7 + noise * 0.3) * attackEnv
-                let body = Float(sin(2.0 * .pi * 400.0 * t)) * bodyEnv
-                sample = (sharpClick * 1.8 + body * 0.6) * 1.2
-            case .zealiosV2:
-                let attackEnv = Float(exp(-t * 800.0))
-                let bodyEnv = Float(exp(-t * 150.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let crispBump = (Float(sin(2.0 * .pi * 1000.0 * t)) * 0.5 + noise * 0.2) * attackEnv
-                let body = Float(sin(2.0 * .pi * 200.0 * t)) * bodyEnv
-                sample = (crispBump * 1.2 + body * 1.0) * 1.3
-            case .alpacaLinear:
-                let attackEnv = Float(exp(-t * 500.0))
-                let bodyEnv = Float(exp(-t * 120.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let clack = (Float(sin(2.0 * .pi * 350.0 * t)) * 0.5 + noise * 0.2) * attackEnv
-                let body = Float(sin(2.0 * .pi * 180.0 * t)) * bodyEnv
-                sample = (clack * 1.0 + body * 0.8) * 1.2
-            case .novelKeysCream:
-                let attackEnv = Float(exp(-t * 400.0))
-                let bodyEnv = Float(exp(-t * 100.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let creamClack = (Float(sin(2.0 * .pi * 450.0 * t)) * 0.4 + noise * 0.2) * attackEnv
-                let deepBody = Float(sin(2.0 * .pi * 160.0 * t)) * bodyEnv
-                sample = (creamClack * 0.9 + deepBody * 1.1) * 1.3
-            case .bucklingSpring:
-                let attackEnv = Float(exp(-t * 2000.0))
-                let springEnv = Float(exp(-t * 40.0))
-                let bodyEnv = Float(exp(-t * 100.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let metallicClick = (Float(sin(2.0 * .pi * 3000.0 * t)) * 0.6 + noise * 0.4) * attackEnv
-                let springRing = Float(sin(2.0 * .pi * 800.0 * t) + sin(2.0 * .pi * 820.0 * t)) * springEnv * 0.3
-                let body = Float(sin(2.0 * .pi * 200.0 * t)) * bodyEnv
-                sample = (metallicClick * 1.5 + springRing + body * 0.8) * 1.2
-            case .gateronYellow:
-                let attackEnv = Float(exp(-t * 300.0))
-                let bodyEnv = Float(exp(-t * 100.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let clack = (Float(sin(2.0 * .pi * 320.0 * t)) * 0.5 + noise * 0.2) * attackEnv
-                let body = Float(sin(2.0 * .pi * 170.0 * t)) * bodyEnv
-                sample = (clack * 0.9 + body * 1.1) * 1.3
-            case .bobaU4T:
-                let attackEnv = Float(exp(-t * 900.0))
-                let bodyEnv = Float(exp(-t * 150.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let tactileBump = (Float(sin(2.0 * .pi * 900.0 * t)) * 0.5 + noise * 0.1) * attackEnv
-                let deepThock = Float(sin(2.0 * .pi * 150.0 * t)) * bodyEnv
-                sample = (tactileBump * 0.7 + deepThock * 1.4) * 1.4
-            case .cherryMXBlack:
-                let attackEnv = Float(exp(-t * 200.0))
-                let bodyEnv = Float(exp(-t * 80.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let dullClack = noise * attackEnv * 0.2
-                let body = Float(sin(2.0 * .pi * 130.0 * t)) * bodyEnv
-                sample = (dullClack + body * 1.3) * 1.1
-            case .kailhBoxJade:
-                let attackEnv = Float(exp(-t * 4000.0))
-                let bodyEnv = Float(exp(-t * 250.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let loudClick = (Float(sin(2.0 * .pi * 5500.0 * t)) * 0.6 + noise * 0.4) * attackEnv
-                let body = Float(sin(2.0 * .pi * 350.0 * t)) * bodyEnv
-                sample = (loudClick * 2.0 + body * 0.7) * 1.3
-            case .gateronOilKing:
-                let attackEnv = Float(exp(-t * 250.0))
-                let bodyEnv = Float(exp(-t * 90.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let smoothClack = (Float(sin(2.0 * .pi * 160.0 * t)) * 0.3 + noise * 0.1) * attackEnv
-                let deepBody = Float(sin(2.0 * .pi * 110.0 * t)) * bodyEnv
-                sample = (smoothClack * 0.8 + deepBody * 1.6) * 1.3
-            case .akkoMatchaGreen:
-                let attackEnv = Float(exp(-t * 280.0))
-                let bodyEnv = Float(exp(-t * 110.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let clack = (Float(sin(2.0 * .pi * 280.0 * t)) * 0.4 + noise * 0.15) * attackEnv
-                let body = Float(sin(2.0 * .pi * 140.0 * t)) * bodyEnv
-                sample = (clack * 1.1 + body * 1.3) * 1.3
-            case .kttKangWhite:
-                let attackEnv = Float(exp(-t * 300.0))
-                let bodyEnv = Float(exp(-t * 130.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let clack = (Float(sin(2.0 * .pi * 240.0 * t)) * 0.3 + noise * 0.1) * attackEnv
-                let thock = Float(sin(2.0 * .pi * 120.0 * t)) * bodyEnv
-                sample = (clack * 0.9 + thock * 1.5) * 1.4
-            case .gloriousPanda:
-                let attackEnv = Float(exp(-t * 700.0))
-                let bodyEnv = Float(exp(-t * 160.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let sharpBump = (Float(sin(2.0 * .pi * 1100.0 * t)) * 0.5 + noise * 0.2) * attackEnv
-                let deepThock = Float(sin(2.0 * .pi * 180.0 * t)) * bodyEnv
-                sample = (sharpBump * 1.1 + deepThock * 1.3) * 1.4
-            case .dropHaloTrue:
-                let attackEnv = Float(exp(-t * 600.0))
-                let bodyEnv = Float(exp(-t * 140.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let heavyBump = (Float(sin(2.0 * .pi * 900.0 * t)) * 0.6 + noise * 0.3) * attackEnv
-                let thud = Float(sin(2.0 * .pi * 160.0 * t)) * bodyEnv
-                sample = (heavyBump * 1.0 + thud * 1.2) * 1.3
-            case .c3Tangerine:
-                let attackEnv = Float(exp(-t * 400.0))
-                let bodyEnv = Float(exp(-t * 100.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let highClack = (Float(sin(2.0 * .pi * 500.0 * t)) * 0.6 + noise * 0.2) * attackEnv
-                let body = Float(sin(2.0 * .pi * 220.0 * t)) * bodyEnv
-                sample = (highClack * 1.2 + body * 0.9) * 1.3
-            case .mechanicalSpacebar:
-                let attackEnv = Float(exp(-t * 300.0))
-                let bodyEnv = Float(exp(-t * 50.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let thock = Float(sin(2.0 * .pi * 90.0 * t)) * bodyEnv
-                let clack = (Float(sin(2.0 * .pi * 600.0 * t)) * 0.5 + noise * 0.3) * attackEnv
-                sample = (thock * 1.5 + clack * 0.8) * 1.5
-            case .mechanicalEnter:
-                let attackEnv = Float(exp(-t * 400.0))
-                let bodyEnv = Float(exp(-t * 80.0))
-                let noise = Float.random(in: -1.0...1.0)
-                let thock = Float(sin(2.0 * .pi * 120.0 * t)) * bodyEnv
-                let clack = (Float(sin(2.0 * .pi * 800.0 * t)) * 0.5 + noise * 0.4) * attackEnv
-                let metallicRing = Float(sin(2.0 * .pi * 2200.0 * t)) * Float(exp(-t * 40.0)) * 0.1
-                sample = (thock * 1.2 + clack * 1.0 + metallicRing) * 1.4
-            case .mechanicalKeyUp:
-                let env = Float(exp(-t * 300.0))
-                let noise = Float.random(in: -1.0...1.0) * 0.2
-                let clack = Float(sin(2.0 * .pi * 1800.0 * t)) * env
-                let spring = Float(sin(2.0 * .pi * 3000.0 * t)) * Float(exp(-t * 100.0)) * 0.1
-                sample = (clack + noise + spring) * 0.5
-            case .mechanical:
-                // Sentetik geri dönüş thock
-                let noise = Float.random(in: -1.0...1.0)
-                let attackEnv = Float(exp(-t * 800.0))
-                let bodyEnv = Float(exp(-t * 150.0))
-                let freq1 = sin(2.0 * .pi * 120.0 * t)
-                let freq2 = sin(2.0 * .pi * 250.0 * t)
-                let freq3 = sin(2.0 * .pi * 3000.0 * t)
-                let clickPart = (Float(freq3) * 0.2 + noise * 0.4) * attackEnv
-                let thockPart = (Float(freq1) * 0.6 + Float(freq2) * 0.3 + noise * 0.1) * bodyEnv
-                sample = (clickPart + thockPart) * 1.5
-                
-            case .mechanicalClicky:
-                // Tiz ve keskin ses
-                let noise = Float.random(in: -1.0...1.0)
-                let attackEnv = Float(exp(-t * 1200.0))
-                let freq = sin(2.0 * .pi * 3200.0 * t)
-                sample = (Float(freq) * 0.7 + noise * 0.3) * attackEnv * 1.4
-                
-            case .typewriter:
-                // Sentetik daktilo
-                let noise = Float.random(in: -1.0...1.0)
-                let impactEnv = Float(exp(-t * 600.0))
-                let ringEnv = Float(exp(-t * 50.0))
-                let ring1 = sin(2.0 * .pi * 1200.0 * t)
-                let ring2 = sin(2.0 * .pi * 2400.0 * t)
-                let ring3 = sin(2.0 * .pi * 3600.0 * t)
-                let impact = noise * impactEnv
-                let metallicRing = (Float(ring1) * 0.4 + Float(ring2) * 0.3 + Float(ring3) * 0.3) * ringEnv
-                sample = (impact * 0.6 + metallicRing * 0.4) * 1.8
-                
-            case .scifi:
-                // Lazer
-                let env = Float(exp(-t * 80.0))
-                let currentFreq = 500.0 + 2500.0 * exp(-t * 300.0)
-                var osc = sin(2.0 * .pi * currentFreq * t)
-                osc = osc > 0 ? 0.7 : -0.7
-                let noise = Float.random(in: -1.0...1.0) * 0.1
-                sample = (Float(osc) + noise) * env * 1.2
-                
-            case .arcade:
-                // Bip bop 8-bit
-                let env = Float(exp(-t * 40.0))
-                let currentFreq = t < 0.02 ? 400.0 : 800.0
-                var osc = sin(2.0 * .pi * currentFreq * t)
-                osc = osc > 0 ? 0.8 : -0.8 // Square wave
-                sample = Float(osc) * env * 0.5
-                
-            case .waterDrop:
-                let env = Float(exp(-t * 60.0))
-                let currentFreq = 300.0 + 800.0 * (t / duration)
-                let osc = sin(2.0 * .pi * currentFreq * t)
-                sample = Float(osc) * env * 1.5
-                
-            case .glockenspiel:
-                let noise = Float.random(in: -1.0...1.0)
-                let impactEnv = Float(exp(-t * 200.0))
-                let ringEnv = Float(exp(-t * 10.0))
-                let freq = sin(2.0 * .pi * 4200.0 * t)
-                let freq2 = sin(2.0 * .pi * 6500.0 * t)
-                let impact = noise * impactEnv
-                let ring = (Float(freq) * 0.7 + Float(freq2) * 0.3) * ringEnv
-                sample = (impact * 0.2 + ring * 0.8) * 1.2
-                
-            case .woodenBlock:
-                let noise = Float.random(in: -1.0...1.0)
-                let attackEnv = Float(exp(-t * 900.0))
-                let bodyEnv = Float(exp(-t * 200.0))
-                let freq = sin(2.0 * .pi * 800.0 * t)
-                let thock = Float(freq) * bodyEnv
-                let snap = noise * attackEnv
-                sample = (thock * 0.8 + snap * 0.2) * 1.5
-                
-            case .vinylScratch:
-                let noise = Float.random(in: -1.0...1.0)
-                let env = Float(exp(-t * 50.0))
-                let currentFreq = 2000.0 - (1800.0 * t / duration)
-                let osc = sin(2.0 * .pi * currentFreq * t)
-                let distorted = osc > 0 ? 0.9 : -0.9
-                sample = (Float(distorted) * 0.5 + noise * 0.5) * env * 0.8
-                
-            case .bubblePop:
-                let env = Float(exp(-t * 80.0))
-                let currentFreq = 600.0 + 1200.0 * (t / duration)
-                let osc = sin(2.0 * .pi * currentFreq * t)
-                sample = Float(osc) * env * 1.6
-                
-            case .percussiveDjembe:
-                let noise = Float.random(in: -1.0...1.0)
-                let env = Float(exp(-t * 200.0))
-                let freq = sin(2.0 * .pi * 180.0 * t) // bas ağırlıklı
-                let freq2 = sin(2.0 * .pi * 300.0 * t) // düşük tiz
-                let thump = (Float(freq) * 0.7 + Float(freq2) * 0.3) * env
-                let snap = noise * Float(exp(-t * 600.0))
-                sample = (thump * 0.9 + snap * 0.1) * 2.0
-                
-            case .alienBlaster:
-                let noise = Float.random(in: -1.0...1.0)
-                let env = Float(exp(-t * 40.0))
-                let currentFreq = 3000.0 * exp(-t * 500.0) // çok hızlı çakılan lazer
-                var osc = sin(2.0 * .pi * currentFreq * t)
-                osc = osc > 0 ? 1.0 : -1.0 // sert distorsiyon
-                sample = (Float(osc) * 0.6 + noise * 0.4) * env * 1.5
-                
-            case .percussive808:
-                // Derin bir bas vuruşu (Sub-bass)
-                let env = Float(exp(-t * 12.0))
-                let freq = 60.0 * exp(-t * 5.0) // Frekans yavaşça düşer (Pitch drop)
-                let osc = sin(2.0 * .pi * Double(freq) * t)
-                sample = Float(osc) * env * 2.0
-                
-            case .laserGun:
-                // Retro bilim kurgu silahı
-                let env = Float(exp(-t * 15.0))
-                let freq = 2000.0 - (1800.0 * (t / duration))
-                let osc = sin(2.0 * .pi * freq * t)
-                sample = Float(osc) * env * 1.5
-                
-            case .catMeow:
-                // Kedicik (Matematiksel kedi sesi denemesi)
-                let env = Float(sin(.pi * (t / duration))) // yükselip alçalan zarf
-                let baseFreq = 400.0 + 200.0 * sin(2.0 * .pi * 5.0 * t) // vibrato
-                let osc = sin(2.0 * .pi * baseFreq * t)
-                sample = Float(osc) * env * 0.8
-                
-            case .rainDrop:
-                let noise = Float.random(in: -1.0...1.0)
-                let env = Float(exp(-t * 120.0))
-                sample = noise * env * 1.5
-                
-            case .digitalBeep:
-                let env = Float(exp(-t * 200.0))
-                let osc = sin(2.0 * .pi * 2800.0 * t)
-                sample = Float(osc > 0 ? 0.3 : -0.3) * env
-                
-            case .retroPhone:
-                let env = Float(exp(-t * 15.0))
-                let f1 = sin(2.0 * .pi * 350.0 * t)
-                let f2 = sin(2.0 * .pi * 440.0 * t)
-                sample = (Float(f1) + Float(f2)) * env * 1.2
-                
-            case .heartBeat:
-                let env = Float(exp(-t * 8.0))
-                let body = sin(2.0 * .pi * 60.0 * t)
-                sample = Float(body) * env * 2.0
-                
-            case .spaceSweep:
-                let env = Float(exp(-t * 3.0))
-                let sweepFreq = 800.0 * exp(-t * 4.0)
-                let osc = sin(2.0 * .pi * sweepFreq * t)
-                sample = Float(osc) * env * 1.5
-                
-            case .cameraClick:
-                let noise = Float.random(in: -1.0...1.0)
-                let env = Float(exp(-t * 600.0))
-                sample = noise * env * 2.0
-                
-            case .coinCollect:
-                let env = Float(exp(-t * 15.0))
-                let freq = 1200.0 + (t < 0.05 ? 0.0 : 400.0)
-                let osc = sin(2.0 * .pi * freq * t)
-                sample = Float(osc) * env * 0.8
-                
-            case .thunderZap:
-                let noise = Float.random(in: -1.0...1.0)
-                let env = Float(exp(-t * 60.0))
-                let osc = sin(2.0 * .pi * 80.0 * t) // bas distorsiyonu
-                sample = (Float(osc) * 0.5 + noise * 0.5) * env * 2.0
-                
-            case .forestWind:
-                let noise = Float.random(in: -1.0...1.0)
-                let env = Float(sin(.pi * (t / duration)))
-                let freq = 200.0 + 100.0 * sin(2.0 * .pi * 2.0 * t)
-                let osc = sin(2.0 * .pi * freq * t)
-                sample = (Float(osc) * 0.3 + noise * 0.7) * env * 1.0
-                
-            case .deepThud:
-                let env = Float(exp(-t * 10.0))
-                let body = sin(2.0 * .pi * 45.0 * t)
-                sample = Float(body) * env * 2.5
-                
-            case .heavyMetal:
-                let noise = Float.random(in: -1.0...1.0)
-                let env = Float(exp(-t * 25.0))
-                let body = sin(2.0 * .pi * 200.0 * t)
-                sample = (Float(body) * 0.4 + noise * 0.6) * env * 1.8
-                
-            case .neonBeep:
-                let env = Float(exp(-t * 150.0))
-                let f1 = sin(2.0 * .pi * 3200.0 * t)
-                sample = Float(f1) * env * 0.6
-                
-            case .natureWood:
-                let noise = Float.random(in: -1.0...1.0) * 0.2
-                let env = Float(exp(-t * 100.0))
-                let body = sin(2.0 * .pi * 350.0 * t)
-                sample = (Float(body) + noise) * env * 1.4
-                
-            case .subBass:
-                let env = Float(exp(-t * 6.0))
-                let low = sin(2.0 * .pi * 35.0 * t)
-                sample = Float(low) * env * 2.2
-                
-            case .airRush:
-                let noise = Float.random(in: -1.0...1.0)
-                let env = Float(exp(-t * 40.0))
-                sample = noise * env * 0.9
-            }
-            
-            // Satürasyon
-            if sample > 1.0 { sample = 1.0 }
-            if sample < -1.0 { sample = -1.0 }
-            
-            channelData[i] = sample
-        }
-        
-        return buffer
+    func checkPermission() {
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        self.hasPermission = AXIsProcessTrustedWithOptions(options)
     }
 }

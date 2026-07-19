@@ -171,10 +171,10 @@ struct MenuView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 6) {
                                 ForEach(AudioTheme.allCases, id: \.self) { theme in
-                                    let isSelected = audioSynthesizer.currentTheme == theme
+                                    let isSelected = audioSynthesizer.selectedTheme == theme
                                     Button(action: {
                                         withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.2)) {
-                                            audioSynthesizer.setTheme(theme)
+                                            audioSynthesizer.selectedTheme = theme
                                             proxy.scrollTo(theme, anchor: .center)
                                         }
                                     }) {
