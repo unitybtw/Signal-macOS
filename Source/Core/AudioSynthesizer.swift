@@ -461,6 +461,9 @@ class AudioSynthesizer: ObservableObject {
                 basePitch = 200
             case 53: // Esc
                 basePitch = -400
+            case 0, 14, 34, 31, 32: // A, E, I, O, U (Vowels)
+                basePitch = 80 // Slightly higher pitch for vowels for musicality
+                volumeModifier = 1.05
             default:
                 break
             }
@@ -484,8 +487,14 @@ class AudioSynthesizer: ObservableObject {
                 let wpmApprox = Double(self.recentKeyTimestamps.count) * 30.0 / 5.0
                 let momentum = min(wpmApprox / 120.0, 1.0)
                 
-                volumeModifier *= Float(1.0 + (momentum * 0.2))
-                basePitch += Float(momentum * 150.0)
+                if wpmApprox >= 100.0 {
+                    // COMBO MODE (Fire Mode): Aggressive pitch and volume scaling
+                    volumeModifier *= Float(1.0 + (momentum * 0.4))
+                    basePitch += Float(momentum * 250.0)
+                } else {
+                    volumeModifier *= Float(1.0 + (momentum * 0.2))
+                    basePitch += Float(momentum * 150.0)
+                }
             }
             
             // macOS Virtual Key Codes -> X Position (-1.0 to 1.0)
