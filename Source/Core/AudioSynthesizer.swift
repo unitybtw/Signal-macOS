@@ -319,6 +319,52 @@ class AudioSynthesizer: ObservableObject {
         playKeySound()
     }
     
+    private func getBuffer(for theme: AudioTheme) -> AVAudioPCMBuffer? {
+        switch theme {
+        case .cherryMXBlue: return self.cherryMXBlueBuffer
+        case .cherryMXBrown: return self.cherryMXBrownBuffer
+        case .cherryMXRed: return self.cherryMXRedBuffer
+        case .topre: return self.topreBuffer
+        case .holyPanda: return self.holyPandaBuffer
+        case .gateronBlackInk: return self.gateronBlackInkBuffer
+        case .kailhBoxWhite: return self.kailhBoxWhiteBuffer
+        case .zealiosV2: return self.zealiosV2Buffer
+        case .alpacaLinear: return self.alpacaLinearBuffer
+        case .novelKeysCream: return self.novelKeysCreamBuffer
+        case .bucklingSpring: return self.bucklingSpringBuffer
+        case .mechanical: return self.mechanicalBuffer
+        case .mechanicalClicky: return self.mechanicalClickyBuffer
+        case .typewriter: return self.typewriterBuffer
+        case .scifi: return self.scifiBuffer
+        case .arcade: return self.arcadeBuffer
+        case .waterDrop: return self.waterDropBuffer
+        case .glockenspiel: return self.glockenspielBuffer
+        case .woodenBlock: return self.woodenBlockBuffer
+        case .vinylScratch: return self.vinylScratchBuffer
+        case .bubblePop: return self.bubblePopBuffer
+        case .percussiveDjembe: return self.percussiveDjembeBuffer
+        case .alienBlaster: return self.alienBlasterBuffer
+        case .percussive808: return self.percussive808Buffer
+        case .laserGun: return self.laserGunBuffer
+        case .catMeow: return self.catMeowBuffer
+        case .rainDrop: return self.rainDropBuffer
+        case .digitalBeep: return self.digitalBeepBuffer
+        case .retroPhone: return self.retroPhoneBuffer
+        case .heartBeat: return self.heartBeatBuffer
+        case .spaceSweep: return self.spaceSweepBuffer
+        case .cameraClick: return self.cameraClickBuffer
+        case .coinCollect: return self.coinCollectBuffer
+        case .thunderZap: return self.thunderZapBuffer
+        case .forestWind: return self.forestWindBuffer
+        case .deepThud: return self.deepThudBuffer
+        case .heavyMetal: return self.heavyMetalBuffer
+        case .neonBeep: return self.neonBeepBuffer
+        case .natureWood: return self.natureWoodBuffer
+        case .subBass: return self.subBassBuffer
+        case .airRush: return self.airRushBuffer
+        }
+    }
+    
     func playMouseSound(isLeft: Bool, location: CGPoint) {
         guard engine.isRunning && !isMuted && isMouseSoundEnabled else { return }
         if isSmartMuteEnabled && isSmartMutedActive { return }
@@ -327,53 +373,7 @@ class AudioSynthesizer: ObservableObject {
         
         audioQueue.async { [weak self] in
             guard let self = self else { return }
-            
-            var bufferToPlay: AVAudioPCMBuffer?
-            switch self.currentTheme {
-            case .cherryMXBlue: bufferToPlay = self.cherryMXBlueBuffer
-            case .cherryMXBrown: bufferToPlay = self.cherryMXBrownBuffer
-            case .cherryMXRed: bufferToPlay = self.cherryMXRedBuffer
-            case .topre: bufferToPlay = self.topreBuffer
-            case .holyPanda: bufferToPlay = self.holyPandaBuffer
-            case .gateronBlackInk: bufferToPlay = self.gateronBlackInkBuffer
-            case .kailhBoxWhite: bufferToPlay = self.kailhBoxWhiteBuffer
-            case .zealiosV2: bufferToPlay = self.zealiosV2Buffer
-            case .alpacaLinear: bufferToPlay = self.alpacaLinearBuffer
-            case .novelKeysCream: bufferToPlay = self.novelKeysCreamBuffer
-            case .bucklingSpring: bufferToPlay = self.bucklingSpringBuffer
-            case .mechanical: bufferToPlay = self.mechanicalBuffer
-            case .mechanicalClicky: bufferToPlay = self.mechanicalClickyBuffer
-            case .typewriter: bufferToPlay = self.typewriterBuffer
-            case .scifi: bufferToPlay = self.scifiBuffer
-            case .arcade: bufferToPlay = self.arcadeBuffer
-            case .waterDrop: bufferToPlay = self.waterDropBuffer
-            case .glockenspiel: bufferToPlay = self.glockenspielBuffer
-            case .woodenBlock: bufferToPlay = self.woodenBlockBuffer
-            case .vinylScratch: bufferToPlay = self.vinylScratchBuffer
-            case .bubblePop: bufferToPlay = self.bubblePopBuffer
-            case .percussiveDjembe: bufferToPlay = self.percussiveDjembeBuffer
-            case .alienBlaster: bufferToPlay = self.alienBlasterBuffer
-            case .percussive808: bufferToPlay = self.percussive808Buffer
-            case .laserGun: bufferToPlay = self.laserGunBuffer
-            case .catMeow: bufferToPlay = self.catMeowBuffer
-            case .rainDrop: bufferToPlay = self.rainDropBuffer
-            case .digitalBeep: bufferToPlay = self.digitalBeepBuffer
-            case .retroPhone: bufferToPlay = self.retroPhoneBuffer
-            case .heartBeat: bufferToPlay = self.heartBeatBuffer
-            case .spaceSweep: bufferToPlay = self.spaceSweepBuffer
-            case .cameraClick: bufferToPlay = self.cameraClickBuffer
-            case .coinCollect: bufferToPlay = self.coinCollectBuffer
-            case .thunderZap: bufferToPlay = self.thunderZapBuffer
-            case .forestWind: bufferToPlay = self.forestWindBuffer
-            case .deepThud: bufferToPlay = self.deepThudBuffer
-            case .heavyMetal: bufferToPlay = self.heavyMetalBuffer
-            case .neonBeep: bufferToPlay = self.neonBeepBuffer
-            case .natureWood: bufferToPlay = self.natureWoodBuffer
-            case .subBass: bufferToPlay = self.subBassBuffer
-            case .airRush: bufferToPlay = self.airRushBuffer
-            }
-            
-            guard let pcmBuffer = bufferToPlay else { return }
+            guard let pcmBuffer = self.getBuffer(for: self.currentTheme) else { return }
             
             let channel = self.channels[self.currentChannelIndex]
             self.currentChannelIndex = (self.currentChannelIndex + 1) % self.channelCount
@@ -400,51 +400,7 @@ class AudioSynthesizer: ObservableObject {
         audioQueue.async { [weak self] in
             guard let self = self else { return }
             
-            var bufferToPlay: AVAudioPCMBuffer?
-            switch self.currentTheme {
-            case .cherryMXBlue: bufferToPlay = self.cherryMXBlueBuffer
-            case .cherryMXBrown: bufferToPlay = self.cherryMXBrownBuffer
-            case .cherryMXRed: bufferToPlay = self.cherryMXRedBuffer
-            case .topre: bufferToPlay = self.topreBuffer
-            case .holyPanda: bufferToPlay = self.holyPandaBuffer
-            case .gateronBlackInk: bufferToPlay = self.gateronBlackInkBuffer
-            case .kailhBoxWhite: bufferToPlay = self.kailhBoxWhiteBuffer
-            case .zealiosV2: bufferToPlay = self.zealiosV2Buffer
-            case .alpacaLinear: bufferToPlay = self.alpacaLinearBuffer
-            case .novelKeysCream: bufferToPlay = self.novelKeysCreamBuffer
-            case .bucklingSpring: bufferToPlay = self.bucklingSpringBuffer
-            case .mechanical: bufferToPlay = self.mechanicalBuffer
-            case .mechanicalClicky: bufferToPlay = self.mechanicalClickyBuffer
-            case .typewriter: bufferToPlay = self.typewriterBuffer
-            case .scifi: bufferToPlay = self.scifiBuffer
-            case .arcade: bufferToPlay = self.arcadeBuffer
-            case .waterDrop: bufferToPlay = self.waterDropBuffer
-            case .glockenspiel: bufferToPlay = self.glockenspielBuffer
-            case .woodenBlock: bufferToPlay = self.woodenBlockBuffer
-            case .vinylScratch: bufferToPlay = self.vinylScratchBuffer
-            case .bubblePop: bufferToPlay = self.bubblePopBuffer
-            case .percussiveDjembe: bufferToPlay = self.percussiveDjembeBuffer
-            case .alienBlaster: bufferToPlay = self.alienBlasterBuffer
-            case .percussive808: bufferToPlay = self.percussive808Buffer
-            case .laserGun: bufferToPlay = self.laserGunBuffer
-            case .catMeow: bufferToPlay = self.catMeowBuffer
-            case .rainDrop: bufferToPlay = self.rainDropBuffer
-            case .digitalBeep: bufferToPlay = self.digitalBeepBuffer
-            case .retroPhone: bufferToPlay = self.retroPhoneBuffer
-            case .heartBeat: bufferToPlay = self.heartBeatBuffer
-            case .spaceSweep: bufferToPlay = self.spaceSweepBuffer
-            case .cameraClick: bufferToPlay = self.cameraClickBuffer
-            case .coinCollect: bufferToPlay = self.coinCollectBuffer
-            case .thunderZap: bufferToPlay = self.thunderZapBuffer
-            case .forestWind: bufferToPlay = self.forestWindBuffer
-            case .deepThud: bufferToPlay = self.deepThudBuffer
-            case .heavyMetal: bufferToPlay = self.heavyMetalBuffer
-            case .neonBeep: bufferToPlay = self.neonBeepBuffer
-            case .natureWood: bufferToPlay = self.natureWoodBuffer
-            case .subBass: bufferToPlay = self.subBassBuffer
-            case .airRush: bufferToPlay = self.airRushBuffer
-            }
-            
+            var bufferToPlay: AVAudioPCMBuffer? = self.getBuffer(for: self.currentTheme)
             guard let pcmBuffer = bufferToPlay else { return }
             
             var basePitch: Float = 0

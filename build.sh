@@ -31,8 +31,8 @@ swiftc -g -Onone \
   $SOURCES -o "$MACOS_DIR/$APP_NAME"
 
 echo "🔐 Uygulama Kod İmzası (Code Sign) oluşturuluyor..."
+find "$APP_DIR" -name ".DS_Store" -delete
 xattr -cr "$APP_DIR"
-xattr -cr Signal.app
 codesign -s "-" --force --deep "$APP_DIR"
 
 echo "✅ Derleme başarılı! Uygulama '$APP_DIR' olarak hazırlandı."
