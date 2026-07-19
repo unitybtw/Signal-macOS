@@ -488,16 +488,23 @@ class AudioSynthesizer: ObservableObject {
                 basePitch += Float(momentum * 150.0)
             }
             
-            let leftKeys: Set<Int64> = [50, 10, 0, 6, 12, 1, 13, 2, 14, 7, 3, 15, 8, 53, 48]
-            let rightKeys: Set<Int64> = [32, 34, 38, 40, 37, 41, 39, 42, 36, 51, 35, 31, 46, 45, 43, 44, 47]
+            // macOS Virtual Key Codes -> X Position (-1.0 to 1.0)
+            let keyMap: [Int64: Float] = [
+                // Row 1 (Numbers)
+                50: -0.9, 18: -0.8, 19: -0.7, 20: -0.5, 21: -0.4, 23: -0.3, 22: -0.1, 26: 0.1, 28: 0.2, 25: 0.3, 29: 0.5, 27: 0.6, 24: 0.8, 51: 0.9,
+                // Row 2 (QWERTY)
+                48: -0.9, 12: -0.75, 13: -0.6, 14: -0.45, 15: -0.3, 17: -0.15, 16: 0.0, 32: 0.15, 34: 0.3, 31: 0.45, 35: 0.6, 33: 0.75, 30: 0.85, 42: 0.9,
+                // Row 3 (ASDF)
+                53: -1.0, 0: -0.7, 1: -0.55, 2: -0.4, 3: -0.25, 5: -0.1, 4: 0.05, 38: 0.2, 40: 0.35, 37: 0.5, 41: 0.65, 39: 0.8, 36: 0.9,
+                // Row 4 (ZXCV)
+                56: -0.9, 6: -0.65, 7: -0.5, 8: -0.35, 9: -0.2, 11: -0.05, 45: 0.1, 46: 0.25, 43: 0.4, 47: 0.55, 44: 0.7, 60: 0.9,
+                // Row 5 (Space, Command, Option, Control)
+                49: 0.0, 59: -0.8, 58: -0.7, 55: -0.6, 54: 0.6, 61: 0.7
+            ]
             
             var panValue: Float = 0.0
-            if leftKeys.contains(keyCode) {
-                panValue = -0.5
-            } else if rightKeys.contains(keyCode) {
-                panValue = 0.5
-            } else if keyCode == 49 {
-                panValue = 0.0
+            if let exactPan = keyMap[keyCode] {
+                panValue = exactPan + Float.random(in: -0.05...0.05)
             } else {
                 panValue = Float.random(in: -0.15...0.15)
             }

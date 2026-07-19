@@ -11,7 +11,7 @@ struct MenuView: View {
     @ObservedObject var audioSynthesizer: AudioSynthesizer
     @Namespace private var selectionNamespace
     
-    @State private var keysPressed: Int = 0
+    @AppStorage("totalKeysPressed") private var totalKeysPressed: Int = 0
     @State private var recentKeystrokes: [Date] = []
     @State private var keyHistory: [RecentKey] = []
     @State private var audioPulseActive: Bool = false
@@ -330,7 +330,7 @@ struct MenuView: View {
             // --- FOOTER ---
             VStack(spacing: 6) {
                 HStack {
-                    Label("\(keysPressed)", systemImage: "keyboard")
+                    Label("\(totalKeysPressed)", systemImage: "keyboard")
                         .font(.system(size: 9, design: .monospaced))
                     
                     Spacer()
@@ -415,7 +415,7 @@ struct MenuView: View {
                 audioPulseActive = false
             }
             
-            keysPressed += 1
+            totalKeysPressed += 1
             let now = Date()
             recentKeystrokes.append(now)
             recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
