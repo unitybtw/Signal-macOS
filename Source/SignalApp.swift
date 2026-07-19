@@ -1,5 +1,6 @@
 import Cocoa
 import SwiftUI
+import CoreAudio
 
 @main
 struct SignalAppBootstrap {
@@ -102,20 +103,55 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             return nil
         }
         
-        // SMART AUTO-MUTE: Toplantı veya Medya uygulamaları açıldığında otomatik sessize al
-        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] notification in
-            guard let self = self, let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
+        // SMART AUTO-MUTE: Mikrofon kullanımdaysa (Zoom, Teams, Discord vb. toplantı) otomatik sessize al
+        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
             
-            let blacklistedBundleIDs = [
-                "us.zoom.xos", "com.microsoft.teams", "com.microsoft.teams2",
-                "com.apple.FaceTime", "com.cisco.webexmeetingsapp", "com.skype.skype",
-                "com.apple.QuickTimePlayerX", "com.colliderli.iina", "org.videolan.vlc"
-            ]
+            var propertyAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioHardwarePropertyDefaultInputDevice,
+                mScope: kAudioObjectPropertyScopeGlobal,
+                mElement: kAudioObjectPropertyElementMain
+            )
             
-            if let bundleID = app.bundleIdentifier, blacklistedBundleIDs.contains(bundleID) {
-                self.audioSynthesizer.isSmartMutedActive = true
-            } else {
-                self.audioSynthesizer.isSmartMutedActive = false
+            var defaultInputDeviceID: AudioDeviceID = 0
+            var dataSize: UInt32 = UInt32(MemoryLayout<AudioDeviceID>.size)
+            
+            let status = AudioObjectGetPropertyData(
+                AudioObjectID(kAudioObjectSystemObject),
+                &propertyAddress,
+                0,
+                nil,
+                &dataSize,
+                &defaultInputDeviceID
+            )
+            
+            if status != noErr { return }
+            
+            var isRunning: UInt32 = 0
+            dataSize = UInt32(MemoryLayout<UInt32>.size)
+            
+            var runningPropertyAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
+                mScope: kAudioObjectPropertyScopeGlobal,
+                mElement: kAudioObjectPropertyElementMain
+            )
+            
+            let status2 = AudioObjectGetPropertyData(
+                defaultInputDeviceID,
+                &runningPropertyAddress,
+                0,
+                nil,
+                &dataSize,
+                &isRunning
+            )
+            
+            if status2 == noErr {
+                let isMicActive = (isRunning > 0)
+                if self.audioSynthesizer.isSmartMutedActive != isMicActive {
+                    DispatchQueue.main.async {
+                        self.audioSynthesizer.isSmartMutedActive = isMicActive
+                    }
+                }
             }
         }
         
