@@ -247,6 +247,15 @@ class AudioSynthesizer: ObservableObject {
         do {
             try engine.start()
             print("AudioEngine: Sentezleyici başlatıldı.")
+            
+            // PRE-WARM OPTIMIZATION:
+            // Oynatıcıları motor başladıktan hemen sonra çalıştırıp "sürekli aktif" tutuyoruz.
+            // Bu sayede tuşa basıldığında AVAudioPlayerNode uyanmak için zaman kaybetmez (Sıfır Gecikme).
+            for channel in channels {
+                if !channel.player.isPlaying {
+                    channel.player.play()
+                }
+            }
         } catch {
             print("AudioEngine Hata: \(error.localizedDescription)")
         }
