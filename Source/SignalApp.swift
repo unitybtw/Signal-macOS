@@ -33,6 +33,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         popover.animates = true
         popover.delegate = self
         let hostingController = NSHostingController(rootView: contentView)
+        let size = hostingController.sizeThatFits(in: NSSize(width: 260, height: 1000))
+        popover.contentSize = NSSize(width: 260, height: size.height)
         popover.contentViewController = hostingController
         
         // Sistemin açık/koyu modunu otomatik takip etmesi için özel görünümü kaldırıyoruz
@@ -153,6 +155,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     func showPopover(_ sender: NSStatusBarButton) {
         NSApp.activate(ignoringOtherApps: true)
+        
+        if let hostingController = popover.contentViewController as? NSHostingController<MenuView> {
+            let size = hostingController.sizeThatFits(in: NSSize(width: 260, height: 1000))
+            popover.contentSize = NSSize(width: 260, height: size.height)
+        }
+        
         // .minY popover'ın her zaman menü bar ikonunu merkezleyerek aşağı açılmasını sağlar.
         popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
     }
