@@ -110,6 +110,7 @@ class AudioSynthesizer: ObservableObject {
     @Published var isErrorSoundEnabled: Bool = UserDefaults.standard.object(forKey: "isErrorSoundEnabled") as? Bool ?? true {
         didSet { UserDefaults.standard.set(isErrorSoundEnabled, forKey: "isErrorSoundEnabled") }
     }
+    @Published var isPopoverVisible: Bool = false
     @Published var isOrganicPitchEnabled: Bool = UserDefaults.standard.object(forKey: "isOrganicPitchEnabled") as? Bool ?? true {
         didSet { UserDefaults.standard.set(isOrganicPitchEnabled, forKey: "isOrganicPitchEnabled") }
     }
@@ -185,12 +186,18 @@ class AudioSynthesizer: ObservableObject {
     private var subBassBuffer: AVAudioPCMBuffer?
     private var airRushBuffer: AVAudioPCMBuffer?
     
+    private var permissionTimer: Timer?
+    
     init() {
         setupEngine()
         generateSynthBuffers()
         
-        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            self?.checkPermission()
+        // Sadece izin yoksa zamanlayıcıyı başlat, izni alınca iptal et
+        self.hasPermission = AXIsProcessTrusted()
+        if !self.hasPermission {
+            permissionTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+                self?.checkPermission()
+            }
         }
         
         // --- Uygulama Açılış Sesi ---
@@ -212,15 +219,16 @@ class AudioSynthesizer: ObservableObject {
         audioQueue.async { [weak self] in
             guard let self = self else { return }
             do {
-                if !self.engine.isRunning {
-                    try self.engine.start()
-                    for channel in self.channels {
-                        if !channel.player.isPlaying {
-                            channel.player.play()
-                        }
-                    }
-                    print("AudioEngine: Aygıt değişikliği sonrası başarıyla yeniden başlatıldı.")
+                if self.engine.isRunning {
+                    self.engine.pause()
                 }
+                try self.engine.start()
+                for channel in self.channels {
+                    if !channel.player.isPlaying {
+                        channel.player.play()
+                    }
+                }
+                print("AudioEngine: Aygıt değişikliği sonrası başarıyla yeniden başlatıldı.")
             } catch {
                 print("AudioEngine Yeniden Başlatma Hatası: \(error.localizedDescription)")
             }
@@ -232,6 +240,8 @@ class AudioSynthesizer: ObservableObject {
         if status != self.hasPermission {
             self.hasPermission = status
             if status {
+                self.permissionTimer?.invalidate()
+                self.permissionTimer = nil
                 NotificationCenter.default.post(name: NSNotification.Name("RestartMonitor"), object: nil)
             }
         }

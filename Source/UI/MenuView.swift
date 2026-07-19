@@ -401,7 +401,6 @@ struct MenuView: View {
                 .animation(.easeInOut(duration: 0.5), value: audioPulseActive)
             }
         )
-        .padding(.top, 4)
         .frame(width: 260)
         .fixedSize(horizontal: false, vertical: true)
         .onReceive(pub) { _ in
@@ -422,6 +421,7 @@ struct MenuView: View {
             recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
         }
         .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
+            guard audioSynthesizer.isPopoverVisible else { return }
             let now = Date()
             recentKeystrokes.removeAll { now.timeIntervalSince($0) > 5.0 }
         }

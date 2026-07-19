@@ -158,11 +158,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     func showPopover(_ sender: NSStatusBarButton) {
         NSApp.activate(ignoringOtherApps: true)
         
-        if let hostingController = popover.contentViewController as? NSHostingController<MenuView> {
-            let size = hostingController.sizeThatFits(in: NSSize(width: 260, height: 1000))
-            popover.contentSize = NSSize(width: 260, height: size.height)
-        }
-        
         // .minY popover'ın her zaman menü bar ikonunu merkezleyerek aşağı açılmasını sağlar.
         popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
     }
@@ -174,6 +169,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     // NSPopoverDelegate: Pencerenin kopup (detach) ekran ortasına gitmesini engeller
     func popoverShouldDetach(_ popover: NSPopover) -> Bool {
         return false
+    }
+    
+    func popoverDidShow(_ notification: Notification) {
+        audioSynthesizer.isPopoverVisible = true
+    }
+    
+    func popoverDidClose(_ notification: Notification) {
+        audioSynthesizer.isPopoverVisible = false
     }
     
     @objc func toggleMute() {
