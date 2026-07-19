@@ -184,6 +184,34 @@ class AudioSynthesizer: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.playStartupSound()
         }
+        
+        // Ses aygıtı (kulaklık takma/çıkarma) değiştiğinde motoru otomatik yeniden başlat
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioConfigurationChange),
+            name: .AVAudioEngineConfigurationChange,
+            object: engine
+        )
+    }
+    
+    @objc private func handleAudioConfigurationChange(notification: Notification) {
+        print("AudioEngine: Çıkış aygıtı değişti. Motor yeniden başlatılıyor...")
+        audioQueue.async { [weak self] in
+            guard let self = self else { return }
+            do {
+                if !self.engine.isRunning {
+                    try self.engine.start()
+                    for channel in self.channels {
+                        if !channel.player.isPlaying {
+                            channel.player.play()
+                        }
+                    }
+                    print("AudioEngine: Aygıt değişikliği sonrası başarıyla yeniden başlatıldı.")
+                }
+            } catch {
+                print("AudioEngine Yeniden Başlatma Hatası: \(error.localizedDescription)")
+            }
+        }
     }
     
     func checkPermission() {
