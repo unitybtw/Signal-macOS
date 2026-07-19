@@ -386,13 +386,19 @@ struct MenuView: View {
         }
         .background(
             ZStack {
-                Circle()
-                    .fill(accentColor.opacity(audioPulseActive ? (wpm / 150.0 + 0.05) : 0.02))
-                    .blur(radius: audioPulseActive ? 50 : 70)
-                    .frame(width: 200, height: 200)
-                    .offset(x: audioPulseActive ? CGFloat.random(in: -30...30) : 0, 
-                            y: audioPulseActive ? CGFloat.random(in: -30...30) : 0)
-                    .animation(.easeInOut(duration: 0.5), value: audioPulseActive)
+                RadialGradient(
+                    gradient: Gradient(colors: [
+                        accentColor.opacity(audioPulseActive ? (wpm / 150.0 + 0.08) : 0.03),
+                        Color.clear
+                    ]),
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: audioPulseActive ? 120 : 100
+                )
+                .frame(width: 250, height: 250)
+                .offset(x: audioPulseActive ? CGFloat.random(in: -15...15) : 0, 
+                        y: audioPulseActive ? CGFloat.random(in: -15...15) : 0)
+                .animation(.easeInOut(duration: 0.5), value: audioPulseActive)
             }
         )
         .padding(.top, 4)

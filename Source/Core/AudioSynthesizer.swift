@@ -120,6 +120,8 @@ class AudioSynthesizer: ObservableObject {
     private var channels: [SynthChannel] = []
     private var currentChannelIndex = 0
     private var recentKeyTimestamps: [Date] = []
+    
+    private let audioQueue = DispatchQueue(label: "com.signal.audio", qos: .userInteractive)
 
     // Synth Buffers
     private var cherryMXBlueBuffer: AVAudioPCMBuffer?
@@ -261,74 +263,73 @@ class AudioSynthesizer: ObservableObject {
         guard engine.isRunning && !isMuted && isMouseSoundEnabled else { return }
         if isSmartMuteEnabled && isSmartMutedActive { return }
         
-        var bufferToPlay: AVAudioPCMBuffer?
-        switch currentTheme {
-        case .cherryMXBlue: bufferToPlay = cherryMXBlueBuffer
-        case .cherryMXBrown: bufferToPlay = cherryMXBrownBuffer
-        case .cherryMXRed: bufferToPlay = cherryMXRedBuffer
-        case .topre: bufferToPlay = topreBuffer
-        case .holyPanda: bufferToPlay = holyPandaBuffer
-        case .gateronBlackInk: bufferToPlay = gateronBlackInkBuffer
-        case .kailhBoxWhite: bufferToPlay = kailhBoxWhiteBuffer
-        case .zealiosV2: bufferToPlay = zealiosV2Buffer
-        case .alpacaLinear: bufferToPlay = alpacaLinearBuffer
-        case .novelKeysCream: bufferToPlay = novelKeysCreamBuffer
-        case .bucklingSpring: bufferToPlay = bucklingSpringBuffer
-        case .mechanical: bufferToPlay = mechanicalBuffer
-        case .mechanicalClicky: bufferToPlay = mechanicalClickyBuffer
-        case .typewriter: bufferToPlay = typewriterBuffer
-        case .scifi: bufferToPlay = scifiBuffer
-        case .arcade: bufferToPlay = arcadeBuffer
-        case .waterDrop: bufferToPlay = waterDropBuffer
-        case .glockenspiel: bufferToPlay = glockenspielBuffer
-        case .woodenBlock: bufferToPlay = woodenBlockBuffer
-        case .vinylScratch: bufferToPlay = vinylScratchBuffer
-        case .bubblePop: bufferToPlay = bubblePopBuffer
-        case .percussiveDjembe: bufferToPlay = percussiveDjembeBuffer
-        case .alienBlaster: bufferToPlay = alienBlasterBuffer
-        case .percussive808: bufferToPlay = percussive808Buffer
-        case .laserGun: bufferToPlay = laserGunBuffer
-        case .catMeow: bufferToPlay = catMeowBuffer
-        case .rainDrop: bufferToPlay = rainDropBuffer
-        case .digitalBeep: bufferToPlay = digitalBeepBuffer
-        case .retroPhone: bufferToPlay = retroPhoneBuffer
-        case .heartBeat: bufferToPlay = heartBeatBuffer
-        case .spaceSweep: bufferToPlay = spaceSweepBuffer
-        case .cameraClick: bufferToPlay = cameraClickBuffer
-        case .coinCollect: bufferToPlay = coinCollectBuffer
-        case .thunderZap: bufferToPlay = thunderZapBuffer
-        case .forestWind: bufferToPlay = forestWindBuffer
-        case .deepThud: bufferToPlay = deepThudBuffer
-        case .heavyMetal: bufferToPlay = heavyMetalBuffer
-        case .neonBeep: bufferToPlay = neonBeepBuffer
-        case .natureWood: bufferToPlay = natureWoodBuffer
-        case .subBass: bufferToPlay = subBassBuffer
-        case .airRush: bufferToPlay = airRushBuffer
-        }
+        let screenWidth = NSScreen.main?.frame.width ?? 1920.0
         
-        guard let pcmBuffer = bufferToPlay else { return }
-        
-        let channel = channels[currentChannelIndex]
-        currentChannelIndex = (currentChannelIndex + 1) % channelCount
-        
-        // Mouse Spatial Panning
-        // Calculate pan based on screen width. location.x is 0 at left edge.
-        var pan: Float = 0.0
-        // EventTap callback is already on the main runloop, so we can access NSScreen directly
-        if let screenWidth = NSScreen.main?.frame.width {
-            // Map x from [0, screenWidth] to [-1.0, 1.0], but keep it within [-0.6, 0.6] for realism
+        audioQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            var bufferToPlay: AVAudioPCMBuffer?
+            switch self.currentTheme {
+            case .cherryMXBlue: bufferToPlay = self.cherryMXBlueBuffer
+            case .cherryMXBrown: bufferToPlay = self.cherryMXBrownBuffer
+            case .cherryMXRed: bufferToPlay = self.cherryMXRedBuffer
+            case .topre: bufferToPlay = self.topreBuffer
+            case .holyPanda: bufferToPlay = self.holyPandaBuffer
+            case .gateronBlackInk: bufferToPlay = self.gateronBlackInkBuffer
+            case .kailhBoxWhite: bufferToPlay = self.kailhBoxWhiteBuffer
+            case .zealiosV2: bufferToPlay = self.zealiosV2Buffer
+            case .alpacaLinear: bufferToPlay = self.alpacaLinearBuffer
+            case .novelKeysCream: bufferToPlay = self.novelKeysCreamBuffer
+            case .bucklingSpring: bufferToPlay = self.bucklingSpringBuffer
+            case .mechanical: bufferToPlay = self.mechanicalBuffer
+            case .mechanicalClicky: bufferToPlay = self.mechanicalClickyBuffer
+            case .typewriter: bufferToPlay = self.typewriterBuffer
+            case .scifi: bufferToPlay = self.scifiBuffer
+            case .arcade: bufferToPlay = self.arcadeBuffer
+            case .waterDrop: bufferToPlay = self.waterDropBuffer
+            case .glockenspiel: bufferToPlay = self.glockenspielBuffer
+            case .woodenBlock: bufferToPlay = self.woodenBlockBuffer
+            case .vinylScratch: bufferToPlay = self.vinylScratchBuffer
+            case .bubblePop: bufferToPlay = self.bubblePopBuffer
+            case .percussiveDjembe: bufferToPlay = self.percussiveDjembeBuffer
+            case .alienBlaster: bufferToPlay = self.alienBlasterBuffer
+            case .percussive808: bufferToPlay = self.percussive808Buffer
+            case .laserGun: bufferToPlay = self.laserGunBuffer
+            case .catMeow: bufferToPlay = self.catMeowBuffer
+            case .rainDrop: bufferToPlay = self.rainDropBuffer
+            case .digitalBeep: bufferToPlay = self.digitalBeepBuffer
+            case .retroPhone: bufferToPlay = self.retroPhoneBuffer
+            case .heartBeat: bufferToPlay = self.heartBeatBuffer
+            case .spaceSweep: bufferToPlay = self.spaceSweepBuffer
+            case .cameraClick: bufferToPlay = self.cameraClickBuffer
+            case .coinCollect: bufferToPlay = self.coinCollectBuffer
+            case .thunderZap: bufferToPlay = self.thunderZapBuffer
+            case .forestWind: bufferToPlay = self.forestWindBuffer
+            case .deepThud: bufferToPlay = self.deepThudBuffer
+            case .heavyMetal: bufferToPlay = self.heavyMetalBuffer
+            case .neonBeep: bufferToPlay = self.neonBeepBuffer
+            case .natureWood: bufferToPlay = self.natureWoodBuffer
+            case .subBass: bufferToPlay = self.subBassBuffer
+            case .airRush: bufferToPlay = self.airRushBuffer
+            }
+            
+            guard let pcmBuffer = bufferToPlay else { return }
+            
+            let channel = self.channels[self.currentChannelIndex]
+            self.currentChannelIndex = (self.currentChannelIndex + 1) % self.channelCount
+            
+            var pan: Float = 0.0
             let normalizedX = Float(location.x / screenWidth)
             pan = (normalizedX * 2.0 - 1.0) * 0.6
-        }
-        
-        // Mouse click is higher pitch and softer
-        channel.pitch.pitch = isLeft ? 1200 : 900 // Right click is deeper
-        channel.mixer.pan = pan
-        channel.player.volume = 0.4
-        
-        channel.player.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
-        if !channel.player.isPlaying {
-            channel.player.play()
+            
+            channel.pitch.pitch = isLeft ? 1200 : 900
+            channel.mixer.pan = pan
+            channel.player.volume = 0.4
+            
+            channel.player.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
+            if !channel.player.isPlaying {
+                channel.player.play()
+            }
         }
     }
     
@@ -336,137 +337,137 @@ class AudioSynthesizer: ObservableObject {
         guard engine.isRunning && !isMuted else { return }
         if isSmartMuteEnabled && isSmartMutedActive { return }
         
-        var bufferToPlay: AVAudioPCMBuffer?
-        switch currentTheme {
-        case .cherryMXBlue: bufferToPlay = cherryMXBlueBuffer
-        case .cherryMXBrown: bufferToPlay = cherryMXBrownBuffer
-        case .cherryMXRed: bufferToPlay = cherryMXRedBuffer
-        case .topre: bufferToPlay = topreBuffer
-        case .holyPanda: bufferToPlay = holyPandaBuffer
-        case .gateronBlackInk: bufferToPlay = gateronBlackInkBuffer
-        case .kailhBoxWhite: bufferToPlay = kailhBoxWhiteBuffer
-        case .zealiosV2: bufferToPlay = zealiosV2Buffer
-        case .alpacaLinear: bufferToPlay = alpacaLinearBuffer
-        case .novelKeysCream: bufferToPlay = novelKeysCreamBuffer
-        case .bucklingSpring: bufferToPlay = bucklingSpringBuffer
-        case .mechanical: bufferToPlay = mechanicalBuffer
-        case .mechanicalClicky: bufferToPlay = mechanicalClickyBuffer
-        case .typewriter: bufferToPlay = typewriterBuffer
-        case .scifi: bufferToPlay = scifiBuffer
-        case .arcade: bufferToPlay = arcadeBuffer
-        case .waterDrop: bufferToPlay = waterDropBuffer
-        case .glockenspiel: bufferToPlay = glockenspielBuffer
-        case .woodenBlock: bufferToPlay = woodenBlockBuffer
-        case .vinylScratch: bufferToPlay = vinylScratchBuffer
-        case .bubblePop: bufferToPlay = bubblePopBuffer
-        case .percussiveDjembe: bufferToPlay = percussiveDjembeBuffer
-        case .alienBlaster: bufferToPlay = alienBlasterBuffer
-        case .percussive808: bufferToPlay = percussive808Buffer
-        case .laserGun: bufferToPlay = laserGunBuffer
-        case .catMeow: bufferToPlay = catMeowBuffer
-        case .rainDrop: bufferToPlay = rainDropBuffer
-        case .digitalBeep: bufferToPlay = digitalBeepBuffer
-        case .retroPhone: bufferToPlay = retroPhoneBuffer
-        case .heartBeat: bufferToPlay = heartBeatBuffer
-        case .spaceSweep: bufferToPlay = spaceSweepBuffer
-        case .cameraClick: bufferToPlay = cameraClickBuffer
-        case .coinCollect: bufferToPlay = coinCollectBuffer
-        case .thunderZap: bufferToPlay = thunderZapBuffer
-        case .forestWind: bufferToPlay = forestWindBuffer
-        case .deepThud: bufferToPlay = deepThudBuffer
-        case .heavyMetal: bufferToPlay = heavyMetalBuffer
-        case .neonBeep: bufferToPlay = neonBeepBuffer
-        case .natureWood: bufferToPlay = natureWoodBuffer
-        case .subBass: bufferToPlay = subBassBuffer
-        case .airRush: bufferToPlay = airRushBuffer
-        }
-        
-        guard let pcmBuffer = bufferToPlay else { return }
-        
-        // Base Pitch Modification
-        var basePitch: Float = 0
-        var volumeModifier: Float = 1.0
-        
-        // Special Keys (Space, Return, Backspace) sound deeper or louder
-        switch keyCode {
-        case 49: // Space
-            if currentTheme == .mechanical || currentTheme == .cherryMXRed || currentTheme == .cherryMXBrown || currentTheme == .topre || currentTheme == .holyPanda {
-                bufferToPlay = mechanicalSpacebarBuffer
+        audioQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            var bufferToPlay: AVAudioPCMBuffer?
+            switch self.currentTheme {
+            case .cherryMXBlue: bufferToPlay = self.cherryMXBlueBuffer
+            case .cherryMXBrown: bufferToPlay = self.cherryMXBrownBuffer
+            case .cherryMXRed: bufferToPlay = self.cherryMXRedBuffer
+            case .topre: bufferToPlay = self.topreBuffer
+            case .holyPanda: bufferToPlay = self.holyPandaBuffer
+            case .gateronBlackInk: bufferToPlay = self.gateronBlackInkBuffer
+            case .kailhBoxWhite: bufferToPlay = self.kailhBoxWhiteBuffer
+            case .zealiosV2: bufferToPlay = self.zealiosV2Buffer
+            case .alpacaLinear: bufferToPlay = self.alpacaLinearBuffer
+            case .novelKeysCream: bufferToPlay = self.novelKeysCreamBuffer
+            case .bucklingSpring: bufferToPlay = self.bucklingSpringBuffer
+            case .mechanical: bufferToPlay = self.mechanicalBuffer
+            case .mechanicalClicky: bufferToPlay = self.mechanicalClickyBuffer
+            case .typewriter: bufferToPlay = self.typewriterBuffer
+            case .scifi: bufferToPlay = self.scifiBuffer
+            case .arcade: bufferToPlay = self.arcadeBuffer
+            case .waterDrop: bufferToPlay = self.waterDropBuffer
+            case .glockenspiel: bufferToPlay = self.glockenspielBuffer
+            case .woodenBlock: bufferToPlay = self.woodenBlockBuffer
+            case .vinylScratch: bufferToPlay = self.vinylScratchBuffer
+            case .bubblePop: bufferToPlay = self.bubblePopBuffer
+            case .percussiveDjembe: bufferToPlay = self.percussiveDjembeBuffer
+            case .alienBlaster: bufferToPlay = self.alienBlasterBuffer
+            case .percussive808: bufferToPlay = self.percussive808Buffer
+            case .laserGun: bufferToPlay = self.laserGunBuffer
+            case .catMeow: bufferToPlay = self.catMeowBuffer
+            case .rainDrop: bufferToPlay = self.rainDropBuffer
+            case .digitalBeep: bufferToPlay = self.digitalBeepBuffer
+            case .retroPhone: bufferToPlay = self.retroPhoneBuffer
+            case .heartBeat: bufferToPlay = self.heartBeatBuffer
+            case .spaceSweep: bufferToPlay = self.spaceSweepBuffer
+            case .cameraClick: bufferToPlay = self.cameraClickBuffer
+            case .coinCollect: bufferToPlay = self.coinCollectBuffer
+            case .thunderZap: bufferToPlay = self.thunderZapBuffer
+            case .forestWind: bufferToPlay = self.forestWindBuffer
+            case .deepThud: bufferToPlay = self.deepThudBuffer
+            case .heavyMetal: bufferToPlay = self.heavyMetalBuffer
+            case .neonBeep: bufferToPlay = self.neonBeepBuffer
+            case .natureWood: bufferToPlay = self.natureWoodBuffer
+            case .subBass: bufferToPlay = self.subBassBuffer
+            case .airRush: bufferToPlay = self.airRushBuffer
             }
-            basePitch = -150
-            volumeModifier = 1.3
-        case 36: // Return
-            if currentTheme == .mechanical || currentTheme == .cherryMXRed || currentTheme == .cherryMXBrown || currentTheme == .topre || currentTheme == .holyPanda {
-                bufferToPlay = mechanicalEnterBuffer
+            
+            guard let pcmBuffer = bufferToPlay else { return }
+            
+            var basePitch: Float = 0
+            var volumeModifier: Float = 1.0
+            
+            switch keyCode {
+            case 49: // Space
+                if self.currentTheme == .mechanical || self.currentTheme == .cherryMXRed || self.currentTheme == .cherryMXBrown || self.currentTheme == .topre || self.currentTheme == .holyPanda {
+                    bufferToPlay = self.mechanicalSpacebarBuffer
+                }
+                basePitch = -150
+                volumeModifier = 1.3
+            case 36: // Return
+                if self.currentTheme == .mechanical || self.currentTheme == .cherryMXRed || self.currentTheme == .cherryMXBrown || self.currentTheme == .topre || self.currentTheme == .holyPanda {
+                    bufferToPlay = self.mechanicalEnterBuffer
+                }
+                basePitch = -100
+                volumeModifier = 1.2
+            case 51: // Backspace
+                basePitch = 150
+                volumeModifier = 0.9
+            case 48: // Tab
+                basePitch = 200
+            case 53: // Esc
+                basePitch = -400
+            default:
+                break
             }
-            basePitch = -100
-            volumeModifier = 1.2
-        case 51: // Backspace
-            basePitch = 150
-            volumeModifier = 0.9
-        case 48: // Tab
-            basePitch = 200
-        case 53: // Esc
-            basePitch = -400
-        default:
-            break
-        }
-        
-        // Up/Down modification
-        if !isDown {
-            if currentTheme == .mechanical || currentTheme == .cherryMXRed || currentTheme == .cherryMXBrown || currentTheme == .topre || currentTheme == .holyPanda || currentTheme == .cherryMXBlue {
-                bufferToPlay = mechanicalKeyUpBuffer
+            
+            let finalBuffer = bufferToPlay ?? pcmBuffer
+            
+            if !isDown {
+                if self.currentTheme == .mechanical || self.currentTheme == .cherryMXRed || self.currentTheme == .cherryMXBrown || self.currentTheme == .topre || self.currentTheme == .holyPanda || self.currentTheme == .cherryMXBlue {
+                    bufferToPlay = self.mechanicalKeyUpBuffer
+                } else {
+                    basePitch += 600
+                }
+                volumeModifier *= 0.3
+            }
+            
+            if isDown {
+                let now = Date()
+                self.recentKeyTimestamps.append(now)
+                self.recentKeyTimestamps.removeAll { now.timeIntervalSince($0) > 2.0 }
+                
+                let wpmApprox = Double(self.recentKeyTimestamps.count) * 30.0 / 5.0
+                let momentum = min(wpmApprox / 120.0, 1.0)
+                
+                volumeModifier *= Float(1.0 + (momentum * 0.2))
+                basePitch += Float(momentum * 150.0)
+            }
+            
+            let leftKeys: Set<Int64> = [50, 10, 0, 6, 12, 1, 13, 2, 14, 7, 3, 15, 8, 53, 48]
+            let rightKeys: Set<Int64> = [32, 34, 38, 40, 37, 41, 39, 42, 36, 51, 35, 31, 46, 45, 43, 44, 47]
+            
+            var panValue: Float = 0.0
+            if leftKeys.contains(keyCode) {
+                panValue = -0.5
+            } else if rightKeys.contains(keyCode) {
+                panValue = 0.5
+            } else if keyCode == 49 {
+                panValue = 0.0
             } else {
-                basePitch += 600 // higher pitch for key return (clack)
+                panValue = Float.random(in: -0.15...0.15)
             }
-            volumeModifier *= 0.3 // softer return
-        }
-        
-        // "Flow State" Momentum Acoustics
-        // As you type faster, the sound becomes slightly louder and sharper (crisper)
-        if isDown {
-            let now = Date()
-            recentKeyTimestamps.append(now)
-            recentKeyTimestamps.removeAll { now.timeIntervalSince($0) > 2.0 }
             
-            let wpmApprox = Double(recentKeyTimestamps.count) * 30.0 / 5.0
-            let momentum = min(wpmApprox / 120.0, 1.0) // 0.0 at 0 WPM, 1.0 at 120+ WPM
+            let channel = self.channels[self.currentChannelIndex]
+            self.currentChannelIndex = (self.currentChannelIndex + 1) % self.channelCount
             
-            volumeModifier *= Float(1.0 + (momentum * 0.2)) // Up to 20% volume boost
-            basePitch += Float(momentum * 150.0) // Up to +150 cents pitch shift
-        }
-        
-        // Spatial Audio / Panning based on Key Code position
-        let leftKeys: Set<Int64> = [50, 10, 0, 6, 12, 1, 13, 2, 14, 7, 3, 15, 8, 53, 48]
-        let rightKeys: Set<Int64> = [32, 34, 38, 40, 37, 41, 39, 42, 36, 51, 35, 31, 46, 45, 43, 44, 47]
-        
-        var panValue: Float = 0.0
-        if leftKeys.contains(keyCode) {
-            panValue = -0.5
-        } else if rightKeys.contains(keyCode) {
-            panValue = 0.5
-        } else if keyCode == 49 { // Space
-            panValue = 0.0
-        } else {
-            panValue = Float.random(in: -0.15...0.15)
-        }
-        
-        let channel = channels[currentChannelIndex]
-        currentChannelIndex = (currentChannelIndex + 1) % channelCount
-        
-        if isOrganicPitchEnabled {
-            channel.pitch.pitch = basePitch + Float.random(in: -80...80)
-        } else {
-            channel.pitch.pitch = basePitch
-        }
-        
-        channel.mixer.pan = panValue
-        channel.player.volume = volumeModifier
-        
-        channel.player.scheduleBuffer(pcmBuffer, at: nil, options: .interrupts)
-        
-        if !channel.player.isPlaying {
-            channel.player.play()
+            if self.isOrganicPitchEnabled {
+                channel.pitch.pitch = basePitch + Float.random(in: -80...80)
+            } else {
+                channel.pitch.pitch = basePitch
+            }
+            
+            channel.mixer.pan = panValue
+            channel.player.volume = volumeModifier
+            
+            channel.player.scheduleBuffer(bufferToPlay ?? finalBuffer, at: nil, options: .interrupts)
+            
+            if !channel.player.isPlaying {
+                channel.player.play()
+            }
         }
     }
     
